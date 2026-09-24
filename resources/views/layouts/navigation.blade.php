@@ -1,348 +1,63 @@
-<nav
-    x-data="{ open: false }"
-    class="bg-white border-b border-gray-100"
->
-    @php
-        $dashboardRoute = match (auth()->user()->role) {
-            'owner' => 'owner.dashboard',
-            'employee' => 'employee.dashboard',
-            'customer' => 'customer.dashboard',
-            default => 'login',
-        };
-    @endphp
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        <div class="flex justify-between h-16">
-
-            {{-- LEFT SIDE --}}
-            <div class="flex">
-
-                {{-- LOGO --}}
-                <div class="shrink-0 flex items-center">
-
-                    <a href="{{ route($dashboardRoute) }}">
-
-                        <x-application-logo
-                            class="block h-9 w-auto fill-current text-gray-800"
-                        />
-
-                    </a>
-
+@php
+    $role = auth()->user()->role;
+    $dashboard = ['owner' => 'owner.dashboard', 'employee' => 'employee.dashboard', 'customer' => 'customer.dashboard'][$role] ?? 'login';
+    $links = match ($role) {
+        'owner' => [
+            ['Overview', 'owner.dashboard', 'grid'], ['Reservations', 'owner.reservations', 'calendar'], ['Rentals & returns', 'owner.rentals', 'calendar'],
+            ['Customers', 'owner.customers', 'users'],
+            ['Employees', 'owner.employees', 'team'], ['Payments', 'owner.payments', 'card'], ['Reports', 'owner.reports', 'chart'], ['Settings', 'owner.settings', 'tag'],
+        ],
+        'employee' => [
+            ['Overview', 'employee.dashboard', 'grid'], ['Reservations', 'employee.reservations', 'calendar'], ['Rentals & returns', 'employee.rentals', 'calendar'],
+            ['Gown catalog', 'employee.catalog', 'dress'], ['Maintenance', 'employee.maintenance', 'spark'], ['Customers', 'employee.customers', 'users'], ['Payments', 'employee.payments', 'card'],
+        ],
+        default => [
+            ['Home', 'customer.dashboard', 'grid'], ['Collection', 'customer.catalog', 'dress'], ['My reservations', 'customer.reservations', 'calendar'],
+        ],
+    };
+@endphp
+<svg class="sb-icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="sb-i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="sb-i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h2m4 0h2m-8 4h2"/></symbol>
+    <symbol id="sb-i-dress" viewBox="0 0 24 24"><path d="M9 3h6l1 4 4 3-3 3-2-1 3 9H6l3-9-2 1-3-3 4-3 1-4zM9 7h6"/></symbol>
+    <symbol id="sb-i-tag" viewBox="0 0 24 24"><path d="M20 13 13 20 3 10V4h6l11 9z"/><circle cx="7.5" cy="7.5" r="1"/></symbol>
+    <symbol id="sb-i-spark" viewBox="0 0 24 24"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3zM19 16l1 2.5 2.5 1-2.5 1L19 23l-1-2.5-2.5-1 2.5-1L19 16z"/></symbol>
+    <symbol id="sb-i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7-7.8a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9"/></symbol>
+    <symbol id="sb-i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0m1-5a5 5 0 0 1 5 5"/></symbol>
+    <symbol id="sb-i-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/></symbol>
+    <symbol id="sb-i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M8 16v-4m5 4V6m5 10V9"/></symbol>
+    <symbol id="sb-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="sb-i-logout" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5m5 5H3m10-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></symbol>
+</svg>
+<aside class="sb-sidebar" :class="sidebarOpen ? 'sb-sidebar-open' : ''">
+    <a class="sb-brand sb-sidebar-brand" href="{{ route($dashboard) }}"><span class="sb-brand-mark">S</span><span>Shyra <i>Beautique</i><small>GOWN RENTAL STUDIO</small></span></a>
+    <div class="sb-sidebar-caption">{{ $role === 'customer' ? 'CUSTOMER MENU' : 'WORKSPACE' }}</div>
+    <nav class="sb-side-links">
+        @foreach($links as [$label, $routeName, $icon])
+            <a class="sb-side-link {{ request()->routeIs($routeName) || ($routeName === 'owner.gowns.index' && request()->routeIs('owner.gowns.*')) || ($routeName === 'owner.categories.index' && request()->routeIs('owner.categories.*')) || ($routeName === 'owner.accessories.index' && request()->routeIs('owner.accessories.*')) ? 'is-active' : '' }}" href="{{ route($routeName) }}">
+                <svg><use href="#sb-i-{{ $icon }}"/></svg><span>{{ $label }}</span>
+                @if($label === 'Reservations' && $role !== 'customer' && \App\Models\Reservation::where('status','pending')->exists())<i class="sb-side-dot"></i>@endif
+            </a>
+        @endforeach
+        @if($role === 'owner')
+            <details class="sb-inventory-nav" {{ request()->routeIs('owner.gowns.*', 'owner.categories.*', 'owner.accessories.*', 'owner.maintenance') ? 'open' : '' }}>
+                <summary class="sb-side-link {{ request()->routeIs('owner.gowns.*', 'owner.categories.*', 'owner.accessories.*', 'owner.maintenance') ? 'is-active' : '' }}">
+                    <svg><use href="#sb-i-dress"/></svg><span>Inventory</span><span class="sb-inventory-chevron">⌄</span>
+                </summary>
+                <div class="sb-inventory-subnav">
+                    <a class="{{ request()->routeIs('owner.gowns.*') ? 'is-active' : '' }}" href="{{ route('owner.gowns.index') }}">Gowns</a>
+                    <a class="{{ request()->routeIs('owner.categories.*') ? 'is-active' : '' }}" href="{{ route('owner.categories.index') }}">Categories</a>
+                    <a class="{{ request()->routeIs('owner.accessories.*') ? 'is-active' : '' }}" href="{{ route('owner.accessories.index') }}">Accessories</a>
+                    <a class="{{ request()->routeIs('owner.maintenance') ? 'is-active' : '' }}" href="{{ route('owner.maintenance') }}">Maintenance</a>
                 </div>
-
-                {{-- DESKTOP NAVIGATION --}}
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-
-                    {{-- DASHBOARD --}}
-                    <x-nav-link
-                        :href="route($dashboardRoute)"
-                        :active="request()->routeIs(
-                            'owner.dashboard',
-                            'employee.dashboard',
-                            'customer.dashboard'
-                        )"
-                    >
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-
-
-                    {{-- OWNER NAVIGATION --}}
-                    @if(auth()->user()->role === 'owner')
-
-                        {{-- CATEGORIES --}}
-                        <x-nav-link
-                            :href="route('owner.categories.index')"
-                            :active="request()->routeIs('owner.categories.*')"
-                        >
-                            {{ __('Categories') }}
-                        </x-nav-link>
-
-
-                        {{-- GOWNS --}}
-                        <x-nav-link
-                            :href="route('owner.gowns.index')"
-                            :active="request()->routeIs('owner.gowns.*')"
-                        >
-                            {{ __('Gowns') }}
-                        </x-nav-link>
-
-
-                        {{-- ACCESSORIES --}}
-                        <x-nav-link
-                            :href="route('owner.accessories.index')"
-                            :active="request()->routeIs('owner.accessories.*')"
-                        >
-                            {{ __('Accessories') }}
-                        </x-nav-link>
-
-                    @endif
-
-
-                    {{-- EMPLOYEE NAVIGATION --}}
-                    @if(auth()->user()->role === 'employee')
-
-                        <x-nav-link
-                            :href="route('employee.dashboard')"
-                            :active="request()->routeIs('employee.dashboard')"
-                        >
-                            {{ __('Employee Dashboard') }}
-                        </x-nav-link>
-
-                    @endif
-
-
-                    {{-- CUSTOMER NAVIGATION --}}
-                    @if(auth()->user()->role === 'customer')
-
-                        <x-nav-link
-                            :href="route('customer.dashboard')"
-                            :active="request()->routeIs('customer.dashboard')"
-                        >
-                            {{ __('Customer Dashboard') }}
-                        </x-nav-link>
-
-                    @endif
-
-                </div>
-
-            </div>
-
-
-            {{-- RIGHT SIDE --}}
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-
-                <x-dropdown
-                    align="right"
-                    width="48"
-                >
-
-                    <x-slot name="trigger">
-
-                        <button
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
-                        >
-
-                            <div>
-                                {{ Auth::user()->name }}
-                            </div>
-
-                            <div class="ms-1">
-
-                                <svg
-                                    class="fill-current h-4 w-4"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20"
-                                >
-
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd"
-                                    />
-
-                                </svg>
-
-                            </div>
-
-                        </button>
-
-                    </x-slot>
-
-
-                    <x-slot name="content">
-
-                        {{-- LOGOUT --}}
-                        <form
-                            method="POST"
-                            action="{{ route('logout') }}"
-                        >
-
-                            @csrf
-
-                            <x-dropdown-link
-                                :href="route('logout')"
-                                onclick="event.preventDefault(); this.closest('form').submit();"
-                            >
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-
-                        </form>
-
-                    </x-slot>
-
-                </x-dropdown>
-
-            </div>
-
-
-            {{-- MOBILE HAMBURGER --}}
-            <div class="-me-2 flex items-center sm:hidden">
-
-                <button
-                    @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out"
-                >
-
-                    <svg
-                        class="h-6 w-6"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-
-                        <path
-                            :class="{
-                                'hidden': open,
-                                'inline-flex': !open
-                            }"
-                            class="inline-flex"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-
-                        <path
-                            :class="{
-                                'hidden': !open,
-                                'inline-flex': open
-                            }"
-                            class="hidden"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-
-                    </svg>
-
-                </button>
-
-            </div>
-
+            </details>
+        @endif
+    </nav>
+    <div class="sb-sidebar-bottom">
+        <a class="sb-side-link {{ request()->routeIs('profile.edit') ? 'is-active' : '' }}" href="{{ route('profile.edit') }}"><svg><use href="#sb-i-user"/></svg><span>My profile</span></a>
+        <div class="sb-side-user"><span class="sb-side-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><span class="sb-side-user-copy"><b>{{ auth()->user()->name }}</b><small>{{ ucfirst($role) }} account</small></span>
+            <form method="POST" action="{{ route('logout') }}">@csrf<button class="sb-logout" title="Sign out" aria-label="Sign out"><svg><use href="#sb-i-logout"/></svg></button></form>
         </div>
-
     </div>
-
-
-    {{-- MOBILE NAVIGATION --}}
-    <div
-        :class="{ 'block': open, 'hidden': !open }"
-        class="hidden sm:hidden"
-    >
-
-        <div class="pt-2 pb-3 space-y-1">
-
-            {{-- DASHBOARD --}}
-            <x-responsive-nav-link
-                :href="route($dashboardRoute)"
-                :active="request()->routeIs(
-                    'owner.dashboard',
-                    'employee.dashboard',
-                    'customer.dashboard'
-                )"
-            >
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-
-
-            {{-- OWNER MOBILE LINKS --}}
-            @if(auth()->user()->role === 'owner')
-
-                <x-responsive-nav-link
-                    :href="route('owner.categories.index')"
-                    :active="request()->routeIs('owner.categories.*')"
-                >
-                    {{ __('Categories') }}
-                </x-responsive-nav-link>
-
-
-                <x-responsive-nav-link
-                    :href="route('owner.gowns.index')"
-                    :active="request()->routeIs('owner.gowns.*')"
-                >
-                    {{ __('Gowns') }}
-                </x-responsive-nav-link>
-
-
-                <x-responsive-nav-link
-                    :href="route('owner.accessories.index')"
-                    :active="request()->routeIs('owner.accessories.*')"
-                >
-                    {{ __('Accessories') }}
-                </x-responsive-nav-link>
-
-            @endif
-
-
-            {{-- EMPLOYEE MOBILE LINKS --}}
-            @if(auth()->user()->role === 'employee')
-
-                <x-responsive-nav-link
-                    :href="route('employee.dashboard')"
-                    :active="request()->routeIs('employee.dashboard')"
-                >
-                    {{ __('Employee Dashboard') }}
-                </x-responsive-nav-link>
-
-            @endif
-
-
-            {{-- CUSTOMER MOBILE LINKS --}}
-            @if(auth()->user()->role === 'customer')
-
-                <x-responsive-nav-link
-                    :href="route('customer.dashboard')"
-                    :active="request()->routeIs('customer.dashboard')"
-                >
-                    {{ __('Customer Dashboard') }}
-                </x-responsive-nav-link>
-
-            @endif
-
-        </div>
-
-
-        {{-- MOBILE USER INFORMATION --}}
-        <div class="pt-4 pb-1 border-t border-gray-200">
-
-            <div class="px-4">
-
-                <div class="font-medium text-base text-gray-800">
-                    {{ Auth::user()->name }}
-                </div>
-
-                <div class="font-medium text-sm text-gray-500">
-                    {{ Auth::user()->email }}
-                </div>
-
-            </div>
-
-
-            <div class="mt-3 space-y-1">
-
-                {{-- LOGOUT --}}
-                <form
-                    method="POST"
-                    action="{{ route('logout') }}"
-                >
-
-                    @csrf
-
-                    <x-responsive-nav-link
-                        :href="route('logout')"
-                        onclick="event.preventDefault(); this.closest('form').submit();"
-                    >
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-
-                </form>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</nav>
+</aside>
+<button class="sb-sidebar-scrim" x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen=false" aria-label="Close navigation"></button>

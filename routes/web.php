@@ -8,10 +8,13 @@ use App\Http\Controllers\AccessoryController;
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\ProfileController;
 
 
 Route::get('/', function () {
-    return view('welcome');
+    $featuredGowns = \App\Models\Gown::with('category')->where('status', 'available')->latest()->take(3)->get();
+    return view('welcome', compact('featuredGowns'));
 });
 
 
@@ -30,6 +33,27 @@ Route::middleware(['auth', 'role:owner'])
             OwnerDashboardController::class,
             'index'
         ])->name('dashboard');
+
+        Route::get('/reservations', [ManagementController::class, 'reservations'])->name('reservations');
+        Route::patch('/reservations/{reservation}', [ManagementController::class, 'updateReservation'])->name('reservations.update');
+        Route::get('/rentals', [ManagementController::class, 'rentals'])->name('rentals');
+        Route::post('/rentals/{reservation}/release', [ManagementController::class, 'releaseGown'])->name('rentals.release');
+        Route::post('/rentals/{reservation}/return', [ManagementController::class, 'returnGown'])->name('rentals.return');
+        Route::post('/cleaning/{cleaning}/complete', [ManagementController::class, 'completeCleaning'])->name('cleaning.complete');
+        Route::get('/maintenance', [ManagementController::class, 'maintenance'])->name('maintenance');
+        Route::post('/maintenance', [ManagementController::class, 'createMaintenance'])->name('maintenance.store');
+        Route::post('/maintenance/{maintenance}/complete', [ManagementController::class, 'completeMaintenance'])->name('maintenance.complete');
+        Route::get('/customers', [ManagementController::class, 'customers'])->name('customers');
+        Route::get('/payments', [ManagementController::class, 'payments'])->name('payments');
+        Route::post('/reservations/{reservation}/payments', [ManagementController::class, 'recordPayment'])->name('payments.store');
+        Route::patch('/payments/{payment}', [ManagementController::class, 'verifyPayment'])->name('payments.update');
+        Route::get('/employees', [ManagementController::class, 'employees'])->name('employees');
+        Route::post('/employees', [ManagementController::class, 'createEmployee'])->name('employees.store');
+        Route::put('/employees/{employee}', [ManagementController::class, 'updateEmployee'])->name('employees.update');
+        Route::patch('/employees/{employee}/toggle', [ManagementController::class, 'toggleEmployee'])->name('employees.toggle');
+        Route::get('/reports', [ManagementController::class, 'reports'])->name('reports');
+        Route::get('/settings', [ManagementController::class, 'settings'])->name('settings');
+        Route::put('/settings', [ManagementController::class, 'saveSettings'])->name('settings.save');
 
     Route::resource('categories', CategoryController::class);
     Route::resource('gowns', GownController::class);
@@ -55,6 +79,23 @@ Route::middleware(['auth', 'role:employee'])
             'index'
         ])->name('dashboard');
 
+        Route::get('/reservations', [ManagementController::class, 'reservations'])->name('reservations');
+        Route::patch('/reservations/{reservation}', [ManagementController::class, 'updateReservation'])->name('reservations.update');
+        Route::get('/rentals', [ManagementController::class, 'rentals'])->name('rentals');
+        Route::post('/rentals/{reservation}/release', [ManagementController::class, 'releaseGown'])->name('rentals.release');
+        Route::post('/rentals/{reservation}/return', [ManagementController::class, 'returnGown'])->name('rentals.return');
+        Route::post('/cleaning/{cleaning}/complete', [ManagementController::class, 'completeCleaning'])->name('cleaning.complete');
+        Route::get('/maintenance', [ManagementController::class, 'maintenance'])->name('maintenance');
+        Route::post('/maintenance', [ManagementController::class, 'createMaintenance'])->name('maintenance.store');
+        Route::post('/maintenance/{maintenance}/complete', [ManagementController::class, 'completeMaintenance'])->name('maintenance.complete');
+        Route::get('/customers', [ManagementController::class, 'customers'])->name('customers');
+        Route::get('/payments', [ManagementController::class, 'payments'])->name('payments');
+        Route::post('/reservations/{reservation}/payments', [ManagementController::class, 'recordPayment'])->name('payments.store');
+        Route::patch('/payments/{payment}', [ManagementController::class, 'verifyPayment'])->name('payments.update');
+
+        Route::get('/catalog', [CustomerDashboardController::class, 'catalog'])->name('catalog');
+        Route::get('/catalog/{gown}', [CustomerDashboardController::class, 'details'])->name('catalog.show');
+
     });
 
 
@@ -74,7 +115,22 @@ Route::middleware(['auth', 'role:customer'])
             'index'
         ])->name('dashboard');
 
+        Route::get('/catalog', [CustomerDashboardController::class, 'catalog'])->name('catalog');
+        Route::get('/gowns/{gown}', [CustomerDashboardController::class, 'details'])->name('gowns.show');
+        Route::get('/gowns/{gown}/reserve', [CustomerDashboardController::class, 'reserve'])->name('reserve');
+        Route::post('/gowns/{gown}/reserve', [CustomerDashboardController::class, 'storeReservation'])->name('reserve.store');
+        Route::get('/reservations', [CustomerDashboardController::class, 'reservations'])->name('reservations');
+        Route::patch('/reservations/{reservation}/cancel', [CustomerDashboardController::class, 'cancelReservation'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/payments', [CustomerDashboardController::class, 'submitPayment'])->name('reservations.payments.store');
+
     });
 
 
 require __DIR__.'/auth.php';
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/payments/{payment}/proof', [ManagementController::class, 'paymentProof'])->name('payments.proof');
+});

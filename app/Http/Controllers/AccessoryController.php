@@ -127,11 +127,11 @@ class AccessoryController extends Controller
     public function destroy(Accessory $accessory)
     {
         $accessory->update([
-            'status' => 'retired',
+            'status' => 'unavailable',
         ]);
 
         return redirect()
             ->route('owner.accessories.index')
-            ->with('success', 'Accessory retired successfully.');
+            ->with('success', 'Accessory marked unavailable successfully.');
     }
 }

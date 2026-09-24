@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Accessory;
 use App\Models\Gown;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -10,13 +11,21 @@ use Illuminate\Validation\Rule;
 
 class GownController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $gowns = Gown::with('category')
-            ->latest()
-            ->get();
+        $query = Gown::with(['category', 'accessories'])->latest();
+        if ($request->filled('q')) {
+            $term = $request->string('q');
+            $query->where(fn ($builder) => $builder->where('name', 'like', "%$term%")
+                ->orWhere('gown_code', 'like', "%$term%")
+                ->orWhere('color', 'like', "%$term%"));
+        }
+        if ($request->filled('category')) $query->where('category_id', $request->integer('category'));
+        if ($request->filled('status')) $query->where('status', $request->string('status'));
+        $gowns = $query->paginate(15)->withQueryString();
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('gowns.index', compact('gowns'));
+        return view('gowns.index', compact('gowns', 'categories'));
     }
 
 
@@ -26,7 +35,8 @@ class GownController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('gowns.create', compact('categories'));
+        $accessories = Accessory::where('status', 'available')->orderBy('name')->get();
+        return view('gowns.create', compact('categories', 'accessories'));
     }
 
 
@@ -93,6 +103,12 @@ class GownController extends Controller
                 'min:0'
             ],
 
+            'security_deposit' => [
+                'required',
+                'numeric',
+                'min:0'
+            ],
+
             'purchase_price' => [
                 'nullable',
                 'numeric',
@@ -144,11 +160,16 @@ class GownController extends Controller
                 'nullable',
                 'date'
             ],
+
+            'accessories' => ['nullable', 'array'],
+            'accessories.*' => ['integer', 'exists:accessories,id'],
         ]);
 
 
         $validated['gown_code'] =
             $this->generateGownCode();
+        $accessoryIds = $validated['accessories'] ?? [];
+        unset($validated['accessories']);
 
 
         if ($request->hasFile('image')) {
@@ -160,7 +181,8 @@ class GownController extends Controller
         }
 
 
-        Gown::create($validated);
+        $gown = Gown::create($validated);
+        $gown->accessories()->sync(collect($accessoryIds)->mapWithKeys(fn ($id) => [$id => ['quantity' => 1]])->all());
 
 
         return redirect()
@@ -189,15 +211,18 @@ class GownController extends Controller
 
     public function edit(Gown $gown)
     {
-        $categories = Category::where('is_active', true)
+        $categories = Category::where('is_active', true)->orWhereKey($gown->category_id)
             ->orderBy('name')
             ->get();
 
+        $accessories = Accessory::where('status', 'available')
+            ->orWhereHas('gowns', fn ($query) => $query->where('gowns.id', $gown->id))
+            ->orderBy('name')->get();
         return view(
             'gowns.edit',
             compact(
                 'gown',
-                'categories'
+                'categories', 'accessories'
             )
         );
     }
@@ -243,6 +268,12 @@ class GownController extends Controller
                 'min:0'
             ],
 
+            'security_deposit' => [
+                'required',
+                'numeric',
+                'min:0'
+            ],
+
             'purchase_price' => [
                 'nullable',
                 'numeric',
@@ -294,7 +325,12 @@ class GownController extends Controller
                 'nullable',
                 'date'
             ],
+
+            'accessories' => ['nullable', 'array'],
+            'accessories.*' => ['integer', 'exists:accessories,id'],
         ]);
+        $accessoryIds = $validated['accessories'] ?? [];
+        unset($validated['accessories']);
 
 
         if ($request->hasFile('image')) {
@@ -314,6 +350,7 @@ class GownController extends Controller
 
 
         $gown->update($validated);
+        $gown->accessories()->sync(collect($accessoryIds)->mapWithKeys(fn ($id) => [$id => ['quantity' => 1]])->all());
 
 
         return redirect()
@@ -328,7 +365,7 @@ class GownController extends Controller
     public function destroy(Gown $gown)
     {
         $gown->update([
-            'status' => 'retired',
+            'status' => 'unavailable',
         ]);
 
 
@@ -336,7 +373,7 @@ class GownController extends Controller
             ->route('owner.gowns.index')
             ->with(
                 'success',
-                'Gown retired successfully.'
+                'Gown marked unavailable successfully.'
             );
     }
 }

@@ -21,6 +21,10 @@ class RoleMiddleware
             abort(403, 'Unauthorized access.');
         }
 
+        if ($request->user()->role === 'employee' && $request->user()->employee?->status === 'inactive') {
+            abort(403, 'This employee account is inactive.');
+        }
+
         return $next($request);
     }
 }

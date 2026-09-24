@@ -1,23 +1,8 @@
 <x-app-layout>
-
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Owner Dashboard
-        </h2>
-    </x-slot>
-
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto px-6">
-
-            <h1 class="text-2xl font-bold">
-                Welcome, Owner!
-            </h1>
-
-            <p class="mt-2 text-gray-600">
-                This is your Gown Rental Management System dashboard.
-            </p>
-
-        </div>
-    </div>
-
+<div class="sb-page"><div class="sb-wrap">
+ <div class="sb-heading"><div><span class="sb-kicker">OWNER DASHBOARD</span><h1>Good morning, {{ explode(' ', auth()->user()->name)[0] }} <span>✦</span></h1><p>Here’s what’s happening at Shyra Beautique today.</p></div><a class="sb-btn" href="{{ route('owner.gowns.create') }}">＋ Add new gown</a></div>
+ <div class="sb-stats"><div class="sb-stat"><span>Total gowns</span><b>{{ $gowns }}</b><small>Total inventory</small><i>♧</i></div><div class="sb-stat"><span>Available now</span><b>{{ $available }}</b><small>Currently listed as available</small><i>✧</i></div><div class="sb-stat"><span>Pending reservations</span><b>{{ $pending }}</b><small>Need your attention</small><i>◷</i></div><div class="sb-stat"><span>Active rentals</span><b>{{ $rentals }}</b><small>{{ $confirmed }} confirmed bookings</small><i>♡</i></div><div class="sb-stat"><span>Customer accounts</span><b>{{ $customers }}</b><small>Registered customers</small><i>♙</i></div><div class="sb-stat sb-stat-gold"><span>Payments received</span><b>₱{{ number_format($revenue, 0) }}</b><small>All recorded payments</small><i>₱</i></div></div>
+ <div class="sb-columns"><section class="sb-panel"><div class="sb-panel-head"><div><h2>Recent reservations</h2><p>Most recently created reservations</p></div><span class="sb-pill">Latest bookings</span></div><div class="sb-table-wrap"><table class="sb-table"><thead><tr><th>RESERVATION</th><th>CUSTOMER</th><th>EVENT DATE</th><th>STATUS</th><th>AMOUNT</th></tr></thead><tbody>@forelse($reservations as $reservation)<tr><td><strong>{{ $reservation->reservation_code }}</strong></td><td>{{ $reservation->customer->full_name ?? 'Customer' }}</td><td>{{ $reservation->pickup_date?->format('M d, Y') }}</td><td><span class="sb-status">{{ str_replace('_',' ', ucfirst($reservation->status)) }}</span></td><td>₱{{ number_format($reservation->grand_total, 0) }}</td></tr>@empty<tr><td colspan="5" class="sb-empty">No reservations have been created yet.</td></tr>@endforelse</tbody></table></div></section>
+ <section class="sb-panel sb-sidepanel"><div class="sb-panel-head"><div><h2>Recently added gowns</h2><p>Latest additions to inventory</p></div><a class="sb-text-link" href="{{ route('owner.gowns.index') }}">View all →</a></div>@forelse($recentGowns as $gown)<div class="sb-gown-row"><div class="sb-gown-thumb">✿</div><div><b>{{ $gown->name }}</b><small>{{ $gown->gown_code }} · {{ $gown->size ?? 'All sizes' }}</small></div><span>₱{{ number_format($gown->rental_price, 0) }}</span></div>@empty<div class="sb-empty">No gowns in inventory yet. Add a gown to get started.</div>@endforelse<div class="sb-tip"><span>✦</span><div><b>Inventory note</b><p>Update gown availability and condition after each rental.</p></div></div></section></div>
+</div></div>
 </x-app-layout>
