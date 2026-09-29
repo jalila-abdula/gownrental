@@ -16,9 +16,10 @@
                     </p>
                 </div>
 
-                <a class="sb-btn" href="{{ route('owner.dashboard') }}">
-                    ← Dashboard
-                </a>
+                <div class="sb-report-actions">
+                    <a class="sb-report-export-link" href="{{ route('owner.reports.export') }}">Download CSV</a>
+                    <button class="sb-report-export-button" type="button" onclick="window.print()">Print / Save PDF</button>
+                </div>
 
             </div>
 
@@ -307,6 +308,35 @@
             justify-content: space-between;
             gap: 30px;
             margin-bottom: 32px;
+        }
+
+        .sb-report-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .sb-report-export-link,
+        .sb-report-export-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 15px;
+            border: 1px solid #641d35;
+            border-radius: 8px;
+            background: #641d35;
+            color: #fff;
+            font: 600 12px 'DM Sans', sans-serif;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .sb-report-export-link:hover,
+        .sb-report-export-button:hover {
+            background: #51162a;
+            border-color: #51162a;
         }
 
         .sb-report-kicker {
@@ -727,6 +757,30 @@
                 width: 12px;
             }
 
+            .sb-report-actions {
+                width: 100%;
+            }
+
+            .sb-report-export-link,
+            .sb-report-export-button {
+                flex: 1;
+            }
+
+        }
+
+        @media print {
+            @page { size: A4 landscape; margin: 12mm; }
+            .sb-sidebar,
+            .sb-sidebar-brand,
+            .sb-report-actions { display: none !important; }
+            .sb-main-column,
+            .sb-main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .sb-page { min-height: auto; background: #fff !important; }
+            .sb-wrap { max-width: none; padding: 0; }
+            .sb-report-grid { grid-template-columns: 1.6fr 1fr; }
+            .sb-report-panel,
+            .sb-report-stat { box-shadow: none; break-inside: avoid; }
+            .sb-chart-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         }
     </style>
 

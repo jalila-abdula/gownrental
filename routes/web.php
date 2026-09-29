@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:owner'])
         Route::post('/employees', [ManagementController::class, 'createEmployee'])->name('employees.store');
         Route::put('/employees/{employee}', [ManagementController::class, 'updateEmployee'])->name('employees.update');
         Route::patch('/employees/{employee}/toggle', [ManagementController::class, 'toggleEmployee'])->name('employees.toggle');
+        Route::get('/reports/export', [ManagementController::class, 'exportReports'])->name('reports.export');
         Route::get('/reports', [ManagementController::class, 'reports'])->name('reports');
         Route::get('/settings', [ManagementController::class, 'settings'])->name('settings');
         Route::put('/settings', [ManagementController::class, 'saveSettings'])->name('settings.save');

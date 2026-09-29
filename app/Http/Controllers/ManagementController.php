@@ -20,6 +20,10 @@ class ManagementController extends Controller
             'rentals' => Reservation::with(['customer', 'items.gown', 'gownRelease'])
                 ->whereIn('status', ['confirmed', 'ready_for_pickup', 'released', 'overdue'])->orderBy('pickup_date')->get(),
             'cleanings' => CleaningRecord::with('gown')->where('status', 'pending')->latest()->get(),
+            'pickupsToday' => Reservation::whereIn('status', ['confirmed', 'ready_for_pickup'])->whereDate('pickup_date', today())->count(),
+            'activeRentals' => Reservation::whereIn('status', ['released', 'overdue'])->count(),
+            'returnsDue' => Reservation::whereIn('status', ['released', 'overdue'])->whereDate('return_date', '<=', today())->count(),
+            'cleaningCount' => CleaningRecord::where('status', 'pending')->count(),
             'base' => request()->user()->role,
         ]);
     }
@@ -312,6 +316,68 @@ class ManagementController extends Controller
             'monthly' => Reservation::whereYear('created_at', now()->year)->get(['created_at'])
                 ->groupBy(fn ($reservation) => $reservation->created_at->month)
                 ->map(fn ($rows) => $rows->count()),
+        ]);
+    }
+
+    public function exportReports()
+    {
+        $year = now()->year;
+        $reservationCount = Reservation::count();
+        $rentalCount = Reservation::whereIn('status', ['released', 'overdue'])->count();
+        $paymentTotal = Payment::where('status', 'verified')->sum('amount');
+        $gownCount = Gown::count();
+        $availableCount = Gown::where('status', 'available')->count();
+        $monthly = Reservation::whereYear('created_at', $year)
+            ->selectRaw('MONTH(created_at) as month, COUNT(*) as reservation_count')
+            ->groupByRaw('MONTH(created_at)')
+            ->pluck('reservation_count', 'month');
+        $popular = Gown::with('category')->withCount('reservationItems')
+            ->orderByDesc('reservation_items_count')->take(5)->get();
+
+        return response()->streamDownload(function () use (
+            $year,
+            $reservationCount,
+            $rentalCount,
+            $paymentTotal,
+            $gownCount,
+            $availableCount,
+            $monthly,
+            $popular
+        ) {
+            $stream = fopen('php://output', 'w');
+            fwrite($stream, "\xEF\xBB\xBF");
+            $writeRow = static function (array $row) use ($stream): void {
+                $row = array_map(static function ($value) {
+                    $value = (string) $value;
+                    return preg_match('/^[\x00-\x20]*[=+\-@]/', $value) ? "'" . $value : $value;
+                }, $row);
+                fputcsv($stream, $row);
+            };
+
+            $writeRow(['Business report', 'Shyra Beautique']);
+            $writeRow(['Generated at', now()->format('Y-m-d H:i:s')]);
+            $writeRow([]);
+            $writeRow(['Summary', 'Metric', 'Value']);
+            $writeRow(['Summary', 'Total reservations', $reservationCount]);
+            $writeRow(['Summary', 'Active rentals', $rentalCount]);
+            $writeRow(['Summary', 'Verified payments (PHP)', number_format((float) $paymentTotal, 2, '.', '')]);
+            $writeRow(['Summary', 'Available gowns', $availableCount]);
+            $writeRow(['Summary', 'Total gowns', $gownCount]);
+            $writeRow([]);
+            $writeRow(['Monthly reservations', 'Year', $year]);
+            $writeRow(['Month', 'Reservations']);
+            for ($month = 1; $month <= 12; $month++) {
+                $writeRow([\Carbon\Carbon::create()->month($month)->format('F'), $monthly->get($month, 0)]);
+            }
+            $writeRow([]);
+            $writeRow(['Most reserved gowns', 'Category', 'Bookings']);
+            foreach ($popular as $gown) {
+                $writeRow([$gown->name, $gown->category->name ?? 'Collection', $gown->reservation_items_count]);
+            }
+
+            fclose($stream);
+        }, 'shyra-business-report-' . now()->format('Y-m-d') . '.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 

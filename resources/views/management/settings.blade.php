@@ -16,9 +16,6 @@
                     </p>
                 </div>
 
-                <a class="sb-btn" href="{{ route('owner.dashboard') }}">
-                    Back to overview
-                </a>
             </div>
             @if(session('success'))
                 <div class="sb-success">{{ session('success') }}

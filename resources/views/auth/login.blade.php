@@ -278,31 +278,6 @@
                 @endif
 
 
-                <!-- Account Types -->
-                <div class="mt-8 pt-6 border-t border-[#F0E4E8]">
-
-                    <p class="text-center text-[10px] font-semibold tracking-[0.2em] uppercase text-[#A99CA0] mb-3">
-                        Account Types
-                    </p>
-
-                    <div class="flex justify-center gap-2 flex-wrap">
-
-                        <span class="px-3 py-1.5 rounded-full bg-[#F8EEF2] text-[#5C1A2B] text-xs font-medium">
-                            Owner
-                        </span>
-
-                        <span class="px-3 py-1.5 rounded-full bg-[#F8EEF2] text-[#5C1A2B] text-xs font-medium">
-                            Employee
-                        </span>
-
-                        <span class="px-3 py-1.5 rounded-full bg-[#F8EEF2] text-[#5C1A2B] text-xs font-medium">
-                            Customer
-                        </span>
-
-                    </div>
-
-                </div>
-
             </div>
 
         </div>

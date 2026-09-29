@@ -16,14 +16,6 @@
                     </p>
                 </div>
 
-                <div class="sb-heading-actions">
-
-                    <a class="sb-btn" href="{{ route(auth()->user()->role . '.dashboard') }}">
-                        ← Dashboard
-                    </a>
-
-                </div>
-
             </div>
 
 

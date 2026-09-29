@@ -10,7 +10,6 @@
                     <p>Customer contact details and reservation history.</p>
                 </div>
 
-                <a class="sb-btn" href="{{ route(auth()->user()->role . '.dashboard') }}">← Dashboard</a>
             </div>
 
             <form method="GET" class="sb-filterbar">
