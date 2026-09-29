@@ -3,61 +3,129 @@
     $dashboard = ['owner' => 'owner.dashboard', 'employee' => 'employee.dashboard', 'customer' => 'customer.dashboard'][$role] ?? 'login';
     $links = match ($role) {
         'owner' => [
-            ['Overview', 'owner.dashboard', 'grid'], ['Catalog', 'owner.catalog', 'dress'], ['Reservations', 'owner.reservations', 'calendar'], ['Rentals & returns', 'owner.rentals', 'calendar'],
+            ['Overview', 'owner.dashboard', 'grid'],
+            ['Catalog', 'owner.catalog', 'dress'],
+            ['Reservations', 'owner.reservations', 'calendar'],
+            ['Rentals & returns', 'owner.rentals', 'calendar'],
             ['Customers', 'owner.customers', 'users'],
-            ['Employees', 'owner.employees', 'team'], ['Payments', 'owner.payments', 'card'], ['Reports', 'owner.reports', 'chart'], ['Settings', 'owner.settings', 'tag'],
+            ['Employees', 'owner.employees', 'team'],
+            ['Payments', 'owner.payments', 'card'],
+            ['Reports', 'owner.reports', 'chart'],
+            ['Settings', 'owner.settings', 'tag'],
         ],
         'employee' => [
-            ['Overview', 'employee.dashboard', 'grid'], ['Reservations', 'employee.reservations', 'calendar'], ['Rentals & returns', 'employee.rentals', 'calendar'],
-            ['Gown catalog', 'employee.catalog', 'dress'], ['Maintenance', 'employee.maintenance', 'spark'], ['Customers', 'employee.customers', 'users'], ['Payments', 'employee.payments', 'card'],
+            ['Overview', 'employee.dashboard', 'grid'],
+            ['Reservations', 'employee.reservations', 'calendar'],
+            ['Rentals & returns', 'employee.rentals', 'calendar'],
+            ['Gown catalog', 'employee.catalog', 'dress'],
+            ['Maintenance', 'employee.maintenance', 'spark'],
+            ['Customers', 'employee.customers', 'users'],
+            ['Payments', 'employee.payments', 'card'],
         ],
         default => [
-            ['Home', 'customer.dashboard', 'grid'], ['Collection', 'customer.catalog', 'dress'], ['My reservations', 'customer.reservations', 'calendar'],
+            ['Dashboard', 'customer.dashboard', 'grid'],
+            ['Collection', 'customer.catalog', 'dress'],
+            ['My Reservations', 'customer.reservations', 'calendar'],
         ],
     };
 @endphp
 <svg class="sb-icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <symbol id="sb-i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
-    <symbol id="sb-i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h2m4 0h2m-8 4h2"/></symbol>
-    <symbol id="sb-i-dress" viewBox="0 0 24 24"><path d="M9 3h6l1 4 4 3-3 3-2-1 3 9H6l3-9-2 1-3-3 4-3 1-4zM9 7h6"/></symbol>
-    <symbol id="sb-i-tag" viewBox="0 0 24 24"><path d="M20 13 13 20 3 10V4h6l11 9z"/><circle cx="7.5" cy="7.5" r="1"/></symbol>
-    <symbol id="sb-i-spark" viewBox="0 0 24 24"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3zM19 16l1 2.5 2.5 1-2.5 1L19 23l-1-2.5-2.5-1 2.5-1L19 16z"/></symbol>
-    <symbol id="sb-i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7-7.8a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9"/></symbol>
-    <symbol id="sb-i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0m1-5a5 5 0 0 1 5 5"/></symbol>
-    <symbol id="sb-i-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/></symbol>
-    <symbol id="sb-i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M8 16v-4m5 4V6m5 10V9"/></symbol>
-    <symbol id="sb-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
-    <symbol id="sb-i-logout" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5m5 5H3m10-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></symbol>
+    <symbol id="sb-i-grid" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </symbol>
+    <symbol id="sb-i-calendar" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 10h18M8 14h2m4 0h2m-8 4h2" />
+    </symbol>
+    <symbol id="sb-i-dress" viewBox="0 0 24 24">
+        <path d="M9 3h6l1 4 4 3-3 3-2-1 3 9H6l3-9-2 1-3-3 4-3 1-4zM9 7h6" />
+    </symbol>
+    <symbol id="sb-i-tag" viewBox="0 0 24 24">
+        <path d="M20 13 13 20 3 10V4h6l11 9z" />
+        <circle cx="7.5" cy="7.5" r="1" />
+    </symbol>
+    <symbol id="sb-i-spark" viewBox="0 0 24 24">
+        <path
+            d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3zM19 16l1 2.5 2.5 1-2.5 1L19 23l-1-2.5-2.5-1 2.5-1L19 16z" />
+    </symbol>
+    <symbol id="sb-i-users" viewBox="0 0 24 24">
+        <path
+            d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7-7.8a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9" />
+    </symbol>
+    <symbol id="sb-i-team" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3.5" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M2.5 20a6.5 6.5 0 0 1 13 0m1-5a5 5 0 0 1 5 5" />
+    </symbol>
+    <symbol id="sb-i-card" viewBox="0 0 24 24">
+        <rect x="2.5" y="5" width="19" height="14" rx="2" />
+        <path d="M3 10h18m-14 5h4" />
+    </symbol>
+    <symbol id="sb-i-chart" viewBox="0 0 24 24">
+        <path d="M3 3v18h18M8 16v-4m5 4V6m5 10V9" />
+    </symbol>
+    <symbol id="sb-i-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+    </symbol>
+    <symbol id="sb-i-logout" viewBox="0 0 24 24">
+        <path d="M10 17l5-5-5-5m5 5H3m10-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+    </symbol>
 </svg>
 <aside class="sb-sidebar" :class="sidebarOpen ? 'sb-sidebar-open' : ''">
-    <a class="sb-brand sb-sidebar-brand" href="{{ route($dashboard) }}"><span class="sb-brand-mark">S</span><span>Shyra <i>Beautique</i><small>GOWN RENTAL STUDIO</small></span></a>
+    <a class="sb-brand sb-sidebar-brand" href="{{ route($dashboard) }}"><span class="sb-brand-mark">S</span><span>Shyra
+            <i>Beautique</i><small>GOWN RENTAL STUDIO</small></span></a>
     <div class="sb-sidebar-caption">{{ $role === 'customer' ? 'CUSTOMER MENU' : 'WORKSPACE' }}</div>
     <nav class="sb-side-links">
         @foreach($links as [$label, $routeName, $icon])
-            <a class="sb-side-link {{ request()->routeIs($routeName) || ($routeName === 'owner.catalog' && request()->routeIs('owner.catalog.*')) || ($routeName === 'owner.gowns.index' && request()->routeIs('owner.gowns.*')) || ($routeName === 'owner.categories.index' && request()->routeIs('owner.categories.*')) || ($routeName === 'owner.accessories.index' && request()->routeIs('owner.accessories.*')) ? 'is-active' : '' }}" href="{{ route($routeName) }}">
-                <svg><use href="#sb-i-{{ $icon }}"/></svg><span>{{ $label }}</span>
-                @if($label === 'Reservations' && $role !== 'customer' && \App\Models\Reservation::where('status','pending')->exists())<i class="sb-side-dot"></i>@endif
+            <a class="sb-side-link {{ request()->routeIs($routeName) || ($routeName === 'owner.catalog' && request()->routeIs('owner.catalog.*')) || ($routeName === 'owner.gowns.index' && request()->routeIs('owner.gowns.*')) || ($routeName === 'owner.categories.index' && request()->routeIs('owner.categories.*')) || ($routeName === 'owner.accessories.index' && request()->routeIs('owner.accessories.*')) ? 'is-active' : '' }}"
+                href="{{ route($routeName) }}">
+                <svg>
+                    <use href="#sb-i-{{ $icon }}" />
+                </svg><span>{{ $label }}</span>
+                @if($label === 'Reservations' && $role !== 'customer' && \App\Models\Reservation::where('status', 'pending')->exists())<i
+                class="sb-side-dot"></i>@endif
             </a>
         @endforeach
         @if($role === 'owner')
             <details class="sb-inventory-nav" {{ request()->routeIs('owner.gowns.*', 'owner.categories.*', 'owner.accessories.*', 'owner.maintenance') ? 'open' : '' }}>
-                <summary class="sb-side-link {{ request()->routeIs('owner.gowns.*', 'owner.categories.*', 'owner.accessories.*', 'owner.maintenance') ? 'is-active' : '' }}">
-                    <svg><use href="#sb-i-dress"/></svg><span>Inventory</span><span class="sb-inventory-chevron">⌄</span>
+                <summary
+                    class="sb-side-link {{ request()->routeIs('owner.gowns.*', 'owner.categories.*', 'owner.accessories.*', 'owner.maintenance') ? 'is-active' : '' }}">
+                    <svg>
+                        <use href="#sb-i-dress" />
+                    </svg><span>Inventory</span><span class="sb-inventory-chevron">⌄</span>
                 </summary>
                 <div class="sb-inventory-subnav">
-                    <a class="{{ request()->routeIs('owner.gowns.*') ? 'is-active' : '' }}" href="{{ route('owner.gowns.index') }}">Gowns</a>
-                    <a class="{{ request()->routeIs('owner.categories.*') ? 'is-active' : '' }}" href="{{ route('owner.categories.index') }}">Categories</a>
-                    <a class="{{ request()->routeIs('owner.accessories.*') ? 'is-active' : '' }}" href="{{ route('owner.accessories.index') }}">Accessories</a>
-                    <a class="{{ request()->routeIs('owner.maintenance') ? 'is-active' : '' }}" href="{{ route('owner.maintenance') }}">Maintenance</a>
+                    <a class="{{ request()->routeIs('owner.gowns.*') ? 'is-active' : '' }}"
+                        href="{{ route('owner.gowns.index') }}">Gowns</a>
+                    <a class="{{ request()->routeIs('owner.categories.*') ? 'is-active' : '' }}"
+                        href="{{ route('owner.categories.index') }}">Categories</a>
+                    <a class="{{ request()->routeIs('owner.accessories.*') ? 'is-active' : '' }}"
+                        href="{{ route('owner.accessories.index') }}">Accessories</a>
+                    <a class="{{ request()->routeIs('owner.maintenance') ? 'is-active' : '' }}"
+                        href="{{ route('owner.maintenance') }}">Maintenance</a>
                 </div>
             </details>
         @endif
     </nav>
     <div class="sb-sidebar-bottom">
-        <a class="sb-side-link {{ request()->routeIs('profile.edit') ? 'is-active' : '' }}" href="{{ route('profile.edit') }}"><svg><use href="#sb-i-user"/></svg><span>My profile</span></a>
-        <div class="sb-side-user"><span class="sb-side-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><span class="sb-side-user-copy"><b>{{ auth()->user()->name }}</b><small>{{ ucfirst($role) }} account</small></span>
-            <form method="POST" action="{{ route('logout') }}">@csrf<button class="sb-logout" title="Sign out" aria-label="Sign out"><svg><use href="#sb-i-logout"/></svg></button></form>
+        <a class="sb-side-link {{ request()->routeIs('profile.edit') ? 'is-active' : '' }}"
+            href="{{ route('profile.edit') }}"><svg>
+                <use href="#sb-i-user" />
+            </svg><span>My profile</span></a>
+        <div class="sb-side-user"><span
+                class="sb-side-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><span
+                class="sb-side-user-copy"><b>{{ auth()->user()->name }}</b><small>{{ ucfirst($role) }}
+                    account</small></span>
+            <form method="POST" action="{{ route('logout') }}">@csrf<button class="sb-logout" title="Sign out"
+                    aria-label="Sign out"><svg>
+                        <use href="#sb-i-logout" />
+                    </svg></button></form>
         </div>
     </div>
 </aside>
-<button class="sb-sidebar-scrim" x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen=false" aria-label="Close navigation"></button>
+<button class="sb-sidebar-scrim" x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen=false"
+    aria-label="Close navigation"></button>

@@ -6564,14 +6564,22 @@ body {
 }
 
 .sb-customer-dashboard .sb-customer-hero {
+    min-height: 0;
+    padding: 34px 42px;
     background: linear-gradient(112deg, #fffdf9 0%, #fbf4f5 55%, #f8eef2 100%);
     border: 1px solid #ead9df;
     box-shadow: 0 10px 28px rgba(92, 26, 43, 0.06);
+}
+.sb-customer-dashboard .sb-customer-hero-copy {
+    max-width: 760px;
 }
 .sb-customer-dashboard .sb-customer-hero h1,
 .sb-customer-dashboard .sb-section-head h2,
 .sb-customer-dashboard .sb-customer-rentals-head h2 {
     color: #5c1a2b;
+}
+.sb-customer-dashboard .sb-customer-hero h1 {
+    font-size: 38px;
 }
 .sb-customer-dashboard .sb-customer-hero h1 em {
     color: #b76e79;
@@ -6579,16 +6587,72 @@ body {
 .sb-customer-dashboard .sb-customer-hero p {
     color: #7f6c69;
 }
-.sb-customer-dashboard .sb-hero-orbit {
-    border-color: rgba(183, 110, 121, 0.35);
-    color: #c9a46a;
+.sb-customer-dashboard .sb-customer-hero-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
-.sb-customer-dashboard .sb-hero-orbit::before,
-.sb-customer-dashboard .sb-hero-orbit::after {
-    border-color: rgba(183, 110, 121, 0.22);
+.sb-customer-dashboard .sb-customer-hero {
+    margin-bottom: 22px;
 }
-.sb-customer-dashboard .sb-hero-orbit small {
-    color: #9b7a76;
+.sb-customer-find {
+    margin: 0 0 30px;
+    padding: 17px 0 20px;
+    border-top: 1px solid #ead9df;
+    border-bottom: 1px solid #ead9df;
+}
+.sb-customer-find h2 {
+    margin: 5px 0 13px;
+    color: #5c1a2b;
+    font:
+        600 20px/1.25 "Playfair Display",
+        serif;
+}
+.sb-customer-find-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(110px, 1fr)) auto;
+    gap: 9px;
+}
+.sb-customer-find-form input,
+.sb-customer-find-form select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid #e6d8d0;
+    border-radius: 7px;
+    background: #fff;
+    color: #5f514d;
+    font:
+        12px "DM Sans",
+        sans-serif;
+}
+.sb-customer-find-form .sb-btn {
+    min-height: 42px;
+    padding: 0 15px;
+    white-space: nowrap;
+}
+.sb-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.sb-customer-dashboard .sb-customer-hero-link {
+    color: #7b4652;
+    font:
+        600 12px "DM Sans",
+        sans-serif;
+    text-decoration: none;
+}
+.sb-customer-dashboard .sb-customer-hero-link:hover {
+    color: #5c1a2b;
 }
 .sb-customer-dashboard .sb-btn {
     border-radius: 9px;
@@ -6621,12 +6685,36 @@ body {
     box-shadow: 0 7px 22px rgba(92, 26, 43, 0.06);
 }
 .sb-customer-dashboard .sb-product-image {
-    background: linear-gradient(145deg, #f8eef2, #ead4dc 58%, #f7efe4);
+    height: auto;
+    aspect-ratio: 3 / 4;
+    padding: 16px;
+    background: #f7f3ef;
+    text-decoration: none;
+}
+.sb-customer-dashboard .sb-product-image::after {
+    content: none;
+}
+.sb-customer-dashboard .sb-product-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+.sb-customer-dashboard .sb-product-image-empty {
+    color: #8d7b73;
+    font:
+        12px "DM Sans",
+        sans-serif;
 }
 .sb-customer-dashboard .sb-available {
     border: 1px solid #ead9df;
     background: #f8eef2;
     color: #5c1a2b;
+}
+.sb-customer-dashboard .sb-available.is-unavailable {
+    background: #f1ece7;
+    color: #655953;
 }
 .sb-customer-dashboard .sb-product-info > small {
     color: #a45e6e;
@@ -6650,6 +6738,127 @@ body {
 }
 .sb-customer-dashboard .sb-text-link:hover {
     color: #5c1a2b;
+}
+.sb-customer-dashboard .sb-customer-rentals-empty .sb-text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font:
+        600 11px "DM Sans",
+        sans-serif;
+    text-decoration: none;
+}
+.sb-customer-alerts {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 20px;
+}
+.sb-customer-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 13px 16px;
+    border: 1px solid #ead9df;
+    border-left: 3px solid #b76e79;
+    border-radius: 7px;
+    background: #fffdf9;
+    color: #4a3037;
+    text-decoration: none;
+}
+.sb-customer-alert.is-urgent {
+    border-left-color: #a64545;
+    background: #fff9f7;
+}
+.sb-customer-alert-copy,
+.sb-customer-alert-copy strong,
+.sb-customer-alert-copy span {
+    display: block;
+}
+.sb-customer-alert-copy strong {
+    font:
+        600 13px "DM Sans",
+        sans-serif;
+}
+.sb-customer-alert-copy span {
+    margin-top: 3px;
+    color: #81756f;
+    font:
+        12px/1.45 "DM Sans",
+        sans-serif;
+}
+.sb-customer-alert-link,
+.sb-customer-rental-action {
+    flex: 0 0 auto;
+    color: #8c4858;
+    font:
+        600 11px "DM Sans",
+        sans-serif;
+    text-decoration: none;
+}
+.sb-customer-alert-link:hover,
+.sb-customer-rental-action:hover {
+    color: #5c1a2b;
+}
+.sb-customer-rental-row {
+    grid-template-columns:
+        minmax(180px, 1.5fr) minmax(115px, 1fr) minmax(125px, 1fr)
+        auto auto;
+}
+.sb-customer-rentals-empty .sb-text-link {
+    margin-top: 4px;
+}
+@media (max-width: 900px) {
+    .sb-customer-find-form {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .sb-customer-find-form input {
+        grid-column: span 2;
+    }
+    .sb-customer-rental-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sb-customer-rental-name {
+        grid-column: 1 / -1;
+    }
+    .sb-customer-rental-action {
+        justify-self: start;
+    }
+}
+@media (max-width: 600px) {
+    .sb-customer-dashboard .sb-customer-hero {
+        padding: 26px 20px;
+        margin-bottom: 24px;
+    }
+    .sb-customer-dashboard .sb-customer-hero h1 {
+        font-size: 30px;
+    }
+    .sb-customer-dashboard .sb-customer-hero-actions {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .sb-customer-dashboard .sb-product-image {
+        padding: 10px;
+    }
+    .sb-customer-find-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sb-customer-find-form input,
+    .sb-customer-find-form .sb-btn {
+        grid-column: 1 / -1;
+    }
+    .sb-customer-alert {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .sb-customer-rental-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .sb-customer-rental-action {
+        grid-column: 1 / -1;
+    }
 }
 
 .sb-inventory-stats {

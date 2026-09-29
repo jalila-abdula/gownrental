@@ -33,10 +33,16 @@ class DashboardController extends Controller
             ->orderBy('pickup_date')
             ->take(5)
             ->get() : collect();
+        $gownOptions = Gown::where('status', '!=', 'retired')->get(['size', 'style', 'color']);
 
         return view('customer.dashboard', [
             'featured' => Gown::with('category')->whereIn('status', ['available', 'reserved', 'rented'])->latest()->take(4)->get(),
             'rentals' => $rentals,
+            'filterOptions' => [
+                'sizes' => $gownOptions->pluck('size')->filter()->unique()->sort()->values(),
+                'styles' => $gownOptions->pluck('style')->filter()->unique()->sort()->values(),
+                'colors' => $gownOptions->pluck('color')->filter()->unique()->sort()->values(),
+            ],
         ]);
     }
 

@@ -2,17 +2,106 @@
     <div class="sb-page sb-customer-dashboard">
         <div class="sb-wrap">
             @if(session('reservation_code'))
-                <div class="sb-success">Reservation {{ session('reservation_code') }} received. It is waiting for staff confirmation.</div>
+                <div class="sb-success">Reservation {{ session('reservation_code') }} received. It is waiting for staff
+                    confirmation.</div>
             @endif
             <section class="sb-customer-hero">
-                <div>
-                    <span class="sb-kicker">CUSTOMER DASHBOARD</span>
-                    <h1>Browse the <em>collection.</em></h1>
-                    <p>View gown sizes, rental prices, and availability.</p>
-                    <a class="sb-btn" href="{{ route('customer.catalog') }}">Browse gowns <span>&rarr;</span></a>
+                <div class="sb-customer-hero-copy">
+                    <span class="sb-kicker">ACCOUNT OVERVIEW</span>
+                    <h1>Welcome back, <em>{{ auth()->user()->name }}</em></h1>
+                    <p>Find the gown for your next special occasion.</p>
+                    <div class="sb-customer-hero-actions">
+                        <a class="sb-btn" href="{{ route('customer.catalog') }}">Browse collection
+                            <span>&rarr;</span></a>
+                    </div>
                 </div>
-                <div class="sb-hero-orbit"><span>&#10047;</span><small>GOWN RENTALS</small></div>
             </section>
+
+            @php
+                $alerts = $rentals->filter(fn($rental) => in_array($rental->status, ['awaiting_payment', 'ready_for_pickup', 'overdue'], true));
+            @endphp
+            @if($alerts->isNotEmpty())
+                <section class="sb-customer-alerts" aria-label="Reservation updates">
+                    @foreach($alerts as $alert)
+                        @php
+                            [$alertTitle, $alertMessage] = match ($alert->status) {
+                                'awaiting_payment' => ['Payment required', 'Review this reservation to complete its payment.'],
+                                'ready_for_pickup' => ['Gown ready for pickup', 'Review the pickup details for this reservation.'],
+                                default => ['Return overdue', 'Please review the return details or contact the boutique.'],
+                            };
+                        @endphp
+                        <a class="sb-customer-alert {{ $alert->status === 'overdue' ? 'is-urgent' : '' }}"
+                            href="{{ route('customer.reservations.show', $alert) }}">
+                            <span
+                                class="sb-customer-alert-copy"><strong>{{ $alertTitle }}</strong><span>{{ $alertMessage }}</span></span>
+                            <span class="sb-customer-alert-link">Review <span aria-hidden="true">&rarr;</span></span>
+                        </a>
+                    @endforeach
+                </section>
+            @endif
+
+            <section class="sb-customer-find" aria-labelledby="find-gown-heading">
+                <div>
+                    <span class="sb-kicker">QUICK SEARCH</span>
+                    <h2 id="find-gown-heading">Find a gown</h2>
+                </div>
+                <form action="{{ route('customer.catalog') }}" method="GET" class="sb-customer-find-form">
+                    <label class="sb-visually-hidden" for="customer-gown-search">Search by gown name, style, or
+                        code</label>
+                    <input id="customer-gown-search" type="search" name="search"
+                        placeholder="Name, style, or gown code">
+                    <label class="sb-visually-hidden" for="customer-gown-size">Size</label>
+                    <select id="customer-gown-size" name="size">
+                        <option value="">Any size</option>
+                        @foreach($filterOptions['sizes'] as $size)
+                        <option value="{{ strtolower($size) }}">{{ $size }}</option>@endforeach
+                    </select>
+                    <label class="sb-visually-hidden" for="customer-gown-style">Style</label>
+                    <select id="customer-gown-style" name="style">
+                        <option value="">Any style</option>
+                        @foreach($filterOptions['styles'] as $style)
+                        <option value="{{ strtolower($style) }}">{{ $style }}</option>@endforeach
+                    </select>
+                    <label class="sb-visually-hidden" for="customer-gown-color">Color</label>
+                    <select id="customer-gown-color" name="color">
+                        <option value="">Any color</option>
+                        @foreach($filterOptions['colors'] as $color)
+                        <option value="{{ strtolower($color) }}">{{ $color }}</option>@endforeach
+                    </select>
+                    <button class="sb-btn" type="submit">Search collection <span
+                            aria-hidden="true">&rarr;</span></button>
+                </form>
+            </section>
+
+            <div class="sb-section-head">
+                <div><span class="sb-kicker">THE COLLECTION</span>
+                    <h2>Featured gowns</h2>
+                </div><a class="sb-text-link" href="{{ route('customer.catalog') }}">View all gowns &rarr;</a>
+            </div>
+            <div class="sb-cards">
+                @forelse($featured as $gown)
+                    <article class="sb-product">
+                        <a class="sb-product-image {{ $gown->image ? '' : 'is-empty' }}"
+                            href="{{ route('customer.gowns.show', $gown) }}" aria-label="View {{ $gown->name }}">
+                            @if($gown->image)
+                                <img src="{{ asset('storage/' . $gown->image) }}" alt="{{ $gown->name }}" loading="lazy"
+                                    decoding="async">
+                            @else
+                                <span class="sb-product-image-empty">Photo coming soon</span>
+                            @endif
+                            <span
+                                class="sb-available {{ $gown->status === 'available' ? '' : 'is-unavailable' }}">{{ ucfirst(str_replace('_', ' ', $gown->status)) }}</span>
+                        </a>
+                        <div class="sb-product-info"><small>{{ $gown->category->name ?? 'GOWN' }}</small>
+                            <h3>{{ $gown->name }}</h3>
+                            <div><b>&#8369;{{ number_format($gown->rental_price, 0) }}</b><span>/ rental</span><a
+                                    href="{{ route('customer.reserve', $gown) }}">Reserve &rarr;</a></div>
+                        </div>
+                    </article>
+                @empty
+                    <div class="sb-panel sb-empty">No gowns are available to display yet.</div>
+                @endforelse
+            </div>
 
             <section class="sb-panel sb-customer-rentals">
                 <div class="sb-customer-rentals-head">
@@ -21,7 +110,8 @@
                         <h2>Upcoming rentals &amp; returns</h2>
                         <p>Keep track of gown pickup and return dates.</p>
                     </div>
-                    <a class="sb-text-link" href="{{ route('customer.reservations') }}">View all reservations <span aria-hidden="true">&rarr;</span></a>
+                    <a class="sb-text-link" href="{{ route('customer.reservations') }}">View all reservations <span
+                            aria-hidden="true">&rarr;</span></a>
                 </div>
 
                 @forelse($rentals as $rental)
@@ -42,28 +132,20 @@
                             <small>{{ $isOverdue ? 'RETURN OVERDUE' : 'RETURN DUE' }}</small>
                             <b>{{ $rental->return_date?->format('M d, Y') }}</b>
                         </div>
-                        <span class="sb-status {{ $isOverdue ? 'is-overdue' : '' }}">{{ ucfirst(str_replace('_', ' ', $rental->status)) }}</span>
+                        <span
+                            class="sb-status {{ $isOverdue ? 'is-overdue' : '' }}">{{ ucfirst(str_replace('_', ' ', $rental->status)) }}</span>
+                        <a class="sb-customer-rental-action" href="{{ route('customer.reservations.show', $rental) }}">View
+                            reservation <span aria-hidden="true">&rarr;</span></a>
                     </article>
                 @empty
                     <div class="sb-customer-rentals-empty">
-                        <strong>No upcoming rentals</strong>
-                        <p>Your gown pickup and return dates will appear here when you have an active reservation.</p>
+                        <strong>You don't have any upcoming rentals yet.</strong>
+                        <p>Explore the collection and find a gown for your next special occasion.</p>
+                        <a class="sb-text-link" href="{{ route('customer.catalog') }}">Browse collection <span
+                                aria-hidden="true">&rarr;</span></a>
                     </div>
                 @endforelse
             </section>
-
-            <div class="sb-section-head"><div><span class="sb-kicker">THE COLLECTION</span><h2>Featured gowns</h2></div><a class="sb-text-link" href="{{ route('customer.catalog') }}">View all gowns &rarr;</a></div>
-            <div class="sb-cards">
-                @forelse($featured as $gown)
-                    <article class="sb-product">
-                        <div class="sb-product-image" @if($gown->image) style="background-image:url('{{ asset('storage/'.$gown->image) }}')" @endif><span class="sb-available">Available</span></div>
-                        <div class="sb-product-info"><small>{{ $gown->category->name ?? 'GOWN' }}</small><h3>{{ $gown->name }}</h3><div><b>&#8369;{{ number_format($gown->rental_price, 0) }}</b><span>/ rental</span><a href="{{ route('customer.reserve', $gown) }}">Reserve &rarr;</a></div></div>
-                    </article>
-                @empty
-                    <div class="sb-panel sb-empty">No gowns are available to display yet.</div>
-                @endforelse
-            </div>
-            <div class="sb-reserve-banner"><div><span class="sb-kicker">RESERVATIONS</span><h2>Have an event date?</h2><p>Browse gowns and submit a request for your pickup and return dates.</p></div><a class="sb-btn sb-btn-light" href="{{ route('customer.catalog') }}">Open catalog &rarr;</a></div>
         </div>
     </div>
 </x-app-layout>
