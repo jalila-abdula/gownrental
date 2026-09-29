@@ -34,9 +34,9 @@
 
                         <tbody>
                             @forelse($customers as $customer)
-                                <tr>
+                                <tr onclick="if (!event.target.closest('a, button, form')) window.location.href='{{ route(auth()->user()->role . '.customers.show', $customer) }}'" style="cursor:pointer">
                                     <td>
-                                        <strong>{{ $customer->full_name }}</strong>
+                                        <a class="sb-text-link" href="{{ route(auth()->user()->role . '.customers.show', $customer) }}"><strong>{{ $customer->full_name }}</strong><small class="sb-cell-sub">View reservations and payments</small></a>
                                         <small class="sb-cell-sub">{{ $customer->customer_code }}</small>
                                     </td>
 

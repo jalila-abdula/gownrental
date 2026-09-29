@@ -104,7 +104,7 @@ class GownController extends Controller
             ],
 
             'security_deposit' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:0'
             ],
@@ -181,6 +181,7 @@ class GownController extends Controller
         }
 
 
+        $validated['security_deposit'] = 0;
         $gown = Gown::create($validated);
         $gown->accessories()->sync(collect($accessoryIds)->mapWithKeys(fn ($id) => [$id => ['quantity' => 1]])->all());
 
@@ -269,7 +270,7 @@ class GownController extends Controller
             ],
 
             'security_deposit' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:0'
             ],
@@ -349,6 +350,7 @@ class GownController extends Controller
         }
 
 
+        $validated['security_deposit'] = 0;
         $gown->update($validated);
         $gown->accessories()->sync(collect($accessoryIds)->mapWithKeys(fn ($id) => [$id => ['quantity' => 1]])->all());
 

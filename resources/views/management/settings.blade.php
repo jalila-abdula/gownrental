@@ -61,14 +61,13 @@
 
                     <label>
                         Late return fee per day (₱)
-                        <input type="number" min="0" step="0.01" name="late_fee_per_day"
+                        <input type="number" min="0.01" step="0.01" name="late_fee_per_day"
                             value="{{ old('late_fee_per_day', $settings->get('late_fee_per_day', '0')) }}" required>
                     </label>
 
                     <small class="sb-settings-hint">
 
-                        A late fee is added to the reservation balance when staff record a return after its due date.
-                        Set 0 to disable late fees.
+                        A late fee is added for every late day when staff record the return. Configure a positive daily rate before accepting new reservations.
 
                     </small>
 

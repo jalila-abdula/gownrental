@@ -3,7 +3,7 @@
     $dashboard = ['owner' => 'owner.dashboard', 'employee' => 'employee.dashboard', 'customer' => 'customer.dashboard'][$role] ?? 'login';
     $links = match ($role) {
         'owner' => [
-            ['Overview', 'owner.dashboard', 'grid'], ['Reservations', 'owner.reservations', 'calendar'], ['Rentals & returns', 'owner.rentals', 'calendar'],
+            ['Overview', 'owner.dashboard', 'grid'], ['Catalog', 'owner.catalog', 'dress'], ['Reservations', 'owner.reservations', 'calendar'], ['Rentals & returns', 'owner.rentals', 'calendar'],
             ['Customers', 'owner.customers', 'users'],
             ['Employees', 'owner.employees', 'team'], ['Payments', 'owner.payments', 'card'], ['Reports', 'owner.reports', 'chart'], ['Settings', 'owner.settings', 'tag'],
         ],
@@ -34,7 +34,7 @@
     <div class="sb-sidebar-caption">{{ $role === 'customer' ? 'CUSTOMER MENU' : 'WORKSPACE' }}</div>
     <nav class="sb-side-links">
         @foreach($links as [$label, $routeName, $icon])
-            <a class="sb-side-link {{ request()->routeIs($routeName) || ($routeName === 'owner.gowns.index' && request()->routeIs('owner.gowns.*')) || ($routeName === 'owner.categories.index' && request()->routeIs('owner.categories.*')) || ($routeName === 'owner.accessories.index' && request()->routeIs('owner.accessories.*')) ? 'is-active' : '' }}" href="{{ route($routeName) }}">
+            <a class="sb-side-link {{ request()->routeIs($routeName) || ($routeName === 'owner.catalog' && request()->routeIs('owner.catalog.*')) || ($routeName === 'owner.gowns.index' && request()->routeIs('owner.gowns.*')) || ($routeName === 'owner.categories.index' && request()->routeIs('owner.categories.*')) || ($routeName === 'owner.accessories.index' && request()->routeIs('owner.accessories.*')) ? 'is-active' : '' }}" href="{{ route($routeName) }}">
                 <svg><use href="#sb-i-{{ $icon }}"/></svg><span>{{ $label }}</span>
                 @if($label === 'Reservations' && $role !== 'customer' && \App\Models\Reservation::where('status','pending')->exists())<i class="sb-side-dot"></i>@endif
             </a>

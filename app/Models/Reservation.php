@@ -17,6 +17,7 @@ class Reservation extends Model
         'return_date',
         'rental_total',
         'security_deposit_total',
+        'late_fee_per_day',
         'discount',
         'grand_total',
         'amount_paid',
@@ -24,6 +25,12 @@ class Reservation extends Model
         'status',
         'customer_notes',
         'admin_notes',
+        'measurements',
+        'government_id_photo_path',
+        'physical_id_photo_path',
+        'id_safe_slot',
+        'agreement_accepted_at',
+        'collateral_status',
     ];
 
     protected $casts = [
@@ -31,10 +38,12 @@ class Reservation extends Model
         'return_date' => 'date',
         'rental_total' => 'decimal:2',
         'security_deposit_total' => 'decimal:2',
+        'late_fee_per_day' => 'decimal:2',
         'discount' => 'decimal:2',
         'grand_total' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'balance' => 'decimal:2',
+        'agreement_accepted_at' => 'datetime',
     ];
 
     public function customer()

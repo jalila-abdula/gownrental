@@ -14,7 +14,6 @@
                     <label>Color<input name="color" value="{{ old('color',$gown?->color) }}" maxlength="100" required></label>
                     <label>Style<input name="style" value="{{ old('style',$gown?->style) }}" maxlength="255" placeholder="A-line, mermaid, ball gown"></label>
                     <label>Rental price (PHP)<input type="number" name="rental_price" value="{{ old('rental_price',$gown?->rental_price) }}" min="0" step="0.01" required></label>
-                    <label>Refundable security deposit (PHP)<input type="number" name="security_deposit" value="{{ old('security_deposit',$gown?->security_deposit ?? 0) }}" min="0" step="0.01" required></label>
                     <label>Purchase price (PHP)<input type="number" name="purchase_price" value="{{ old('purchase_price',$gown?->purchase_price) }}" min="0" step="0.01"></label>
                     <label>Condition<select name="condition" required>@foreach(['excellent','good','fair','damaged'] as $condition)<option value="{{ $condition }}" @selected(old('condition',$gown?->condition ?? 'good')===$condition)>{{ ucfirst($condition) }}</option>@endforeach</select></label>
                     <label>Availability<select name="status" required>@foreach(['available','reserved','rented','for_cleaning','under_maintenance','damaged','unavailable','retired'] as $status)<option value="{{ $status }}" @selected(old('status',$gown?->status ?? 'available')===$status)>{{ ucfirst(str_replace('_',' ',$status)) }}</option>@endforeach</select></label>

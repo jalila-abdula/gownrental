@@ -17,7 +17,6 @@ Route::get('/', function () {
     return view('welcome', compact('featuredGowns'));
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | Owner
@@ -35,19 +34,27 @@ Route::middleware(['auth', 'role:owner'])
         ])->name('dashboard');
 
         Route::get('/reservations', [ManagementController::class, 'reservations'])->name('reservations');
+        Route::post('/reservations', [ManagementController::class, 'storeEmployeeReservation'])->name('reservations.store');
         Route::patch('/reservations/{reservation}', [ManagementController::class, 'updateReservation'])->name('reservations.update');
         Route::get('/rentals', [ManagementController::class, 'rentals'])->name('rentals');
         Route::post('/rentals/{reservation}/release', [ManagementController::class, 'releaseGown'])->name('rentals.release');
         Route::post('/rentals/{reservation}/return', [ManagementController::class, 'returnGown'])->name('rentals.return');
+        Route::post('/rentals/{reservation}/release-id', [ManagementController::class, 'releaseIdCollateral'])->name('rentals.release-id');
         Route::post('/cleaning/{cleaning}/complete', [ManagementController::class, 'completeCleaning'])->name('cleaning.complete');
         Route::get('/maintenance', [ManagementController::class, 'maintenance'])->name('maintenance');
         Route::post('/maintenance', [ManagementController::class, 'createMaintenance'])->name('maintenance.store');
         Route::post('/maintenance/{maintenance}/complete', [ManagementController::class, 'completeMaintenance'])->name('maintenance.complete');
         Route::get('/customers', [ManagementController::class, 'customers'])->name('customers');
+        Route::get('/customers/{customer}', [ManagementController::class, 'customerDetails'])->name('customers.show');
         Route::get('/payments', [ManagementController::class, 'payments'])->name('payments');
         Route::post('/reservations/{reservation}/payments', [ManagementController::class, 'recordPayment'])->name('payments.store');
         Route::patch('/payments/{payment}', [ManagementController::class, 'verifyPayment'])->name('payments.update');
+        Route::get('/catalog', [CustomerDashboardController::class, 'catalog'])->name('catalog');
+        Route::get('/catalog/{gown}', [CustomerDashboardController::class, 'details'])->name('catalog.show');
+        Route::get('/catalog/{gown}/reserve', [ManagementController::class, 'employeeReservationForm'])->name('catalog.reserve');
         Route::get('/employees', [ManagementController::class, 'employees'])->name('employees');
+        Route::get('/employees/create', [ManagementController::class, 'createEmployeeForm'])->name('employees.create');
+        Route::get('/employees/{employee}', [ManagementController::class, 'employeeDetails'])->name('employees.show');
         Route::post('/employees', [ManagementController::class, 'createEmployee'])->name('employees.store');
         Route::put('/employees/{employee}', [ManagementController::class, 'updateEmployee'])->name('employees.update');
         Route::patch('/employees/{employee}/toggle', [ManagementController::class, 'toggleEmployee'])->name('employees.toggle');
@@ -81,21 +88,25 @@ Route::middleware(['auth', 'role:employee'])
         ])->name('dashboard');
 
         Route::get('/reservations', [ManagementController::class, 'reservations'])->name('reservations');
+        Route::post('/reservations', [ManagementController::class, 'storeEmployeeReservation'])->name('reservations.store');
         Route::patch('/reservations/{reservation}', [ManagementController::class, 'updateReservation'])->name('reservations.update');
         Route::get('/rentals', [ManagementController::class, 'rentals'])->name('rentals');
         Route::post('/rentals/{reservation}/release', [ManagementController::class, 'releaseGown'])->name('rentals.release');
         Route::post('/rentals/{reservation}/return', [ManagementController::class, 'returnGown'])->name('rentals.return');
+        Route::post('/rentals/{reservation}/release-id', [ManagementController::class, 'releaseIdCollateral'])->name('rentals.release-id');
         Route::post('/cleaning/{cleaning}/complete', [ManagementController::class, 'completeCleaning'])->name('cleaning.complete');
         Route::get('/maintenance', [ManagementController::class, 'maintenance'])->name('maintenance');
         Route::post('/maintenance', [ManagementController::class, 'createMaintenance'])->name('maintenance.store');
         Route::post('/maintenance/{maintenance}/complete', [ManagementController::class, 'completeMaintenance'])->name('maintenance.complete');
         Route::get('/customers', [ManagementController::class, 'customers'])->name('customers');
+        Route::get('/customers/{customer}', [ManagementController::class, 'customerDetails'])->name('customers.show');
         Route::get('/payments', [ManagementController::class, 'payments'])->name('payments');
         Route::post('/reservations/{reservation}/payments', [ManagementController::class, 'recordPayment'])->name('payments.store');
         Route::patch('/payments/{payment}', [ManagementController::class, 'verifyPayment'])->name('payments.update');
 
         Route::get('/catalog', [CustomerDashboardController::class, 'catalog'])->name('catalog');
         Route::get('/catalog/{gown}', [CustomerDashboardController::class, 'details'])->name('catalog.show');
+        Route::get('/catalog/{gown}/reserve', [ManagementController::class, 'employeeReservationForm'])->name('catalog.reserve');
 
     });
 
@@ -134,4 +145,5 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/payments/{payment}/proof', [ManagementController::class, 'paymentProof'])->name('payments.proof');
+    Route::get('/reservations/{reservation}/collateral-photo/{type}', [ManagementController::class, 'collateralPhoto'])->name('reservations.collateral-photo');
 });
