@@ -16,9 +16,31 @@
                     </p>
                 </div>
 
-                <div class="sb-report-actions">
-                    <a class="sb-report-export-link" href="{{ route('owner.reports.export') }}">Download CSV</a>
+                <div class="sb-report-toolbar">
+                    <form class="sb-report-period" method="GET" action="{{ route('owner.reports') }}"
+                        x-data="{ period: '{{ $period['key'] }}' }">
+                        <label for="report-period">Period</label>
+                        <select id="report-period" name="period" x-model="period">
+                            <option value="today">Today</option>
+                            <option value="this_week">This week</option>
+                            <option value="this_month">This month</option>
+                            <option value="this_year">This year</option>
+                            <option value="custom">Custom range</option>
+                        </select>
+                        <div class="sb-report-custom-range" x-show="period === 'custom'">
+                            <label for="report-start-date">From</label>
+                            <input id="report-start-date" type="date" name="start_date" value="{{ $period['start_date'] }}"
+                                x-bind:required="period === 'custom'">
+                            <label for="report-end-date">To</label>
+                            <input id="report-end-date" type="date" name="end_date" value="{{ $period['end_date'] }}"
+                                x-bind:required="period === 'custom'">
+                        </div>
+                        <button class="sb-report-filter-button" type="submit">Apply</button>
+                    </form>
+                    <div class="sb-report-actions">
+                    <a class="sb-report-export-link" href="{{ route('owner.reports.export', ['period' => $period['key'], 'start_date' => $period['start_date'], 'end_date' => $period['end_date']]) }}">Download CSV</a>
                     <button class="sb-report-export-button" type="button" onclick="window.print()">Print / Save PDF</button>
+                    </div>
                 </div>
 
             </div>
@@ -45,7 +67,7 @@
                     </strong>
 
                     <small>
-                        All time
+                        {{ $period['label'] }}
                     </small>
 
                 </div>
@@ -89,7 +111,7 @@
                     </strong>
 
                     <small>
-                        Recorded revenue
+                        Verified in {{ strtolower($period['label']) }}
                     </small>
 
                 </div>
@@ -145,52 +167,35 @@
                                 Monthly reservations
                             </h2>
 
-                            <p>
-                                {{ now()->year }} booking activity
-                            </p>
+                            <p>{{ $period['start_date'] }} to {{ $period['end_date'] }}</p>
 
                         </div>
 
                         <div class="sb-chart-label">
-                            {{ array_sum($monthly->toArray()) }} total
+                            {{ $reservationCount }} total
                         </div>
 
                     </div>
 
 
-                    {{-- Chart --}}
-                    <div class="sb-chart">
-
-                        @for($month = 1; $month <= 12; $month++)
-
-                            @php
-                                $value = $monthly->get($month, 0);
-
-                                $maxValue = max($monthly->max() ?? 0, 1);
-
-                                $barHeight = $value > 0
-                                    ? max(12, ($value / $maxValue) * 135)
-                                    : 5;
-                            @endphp
-
-                            <div class="sb-chart-column">
-
-                                <div class="sb-chart-value">
-                                    {{ $value }}
+                    @if($reservationCount > 0)
+                        <div class="sb-chart">
+                            @php $maxValue = max(collect($monthly)->max('value') ?? 0, 1); @endphp
+                            @foreach($monthly as $month)
+                                @php $barHeight = max(12, ($month['value'] / $maxValue) * 135); @endphp
+                                <div class="sb-chart-column">
+                                    <div class="sb-chart-value">{{ $month['value'] }}</div>
+                                    <div class="sb-chart-bar" style="height: {{ $barHeight }}px;"></div>
+                                    <small>{{ $month['label'] }}</small>
                                 </div>
-
-                                <div class="sb-chart-bar {{ $value == 0 ? 'sb-chart-bar-empty' : '' }}"
-                                    style="height: {{ $barHeight }}px;"></div>
-
-                                <small>
-                                    {{ \Carbon\Carbon::create()->month($month)->format('M') }}
-                                </small>
-
-                            </div>
-
-                        @endfor
-
-                    </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="sb-report-empty sb-chart-empty">
+                            <h3>No reservation data yet</h3>
+                            <p>Reservation activity will appear here once bookings are recorded.</p>
+                        </div>
+                    @endif
 
                 </section>
 
@@ -237,6 +242,10 @@
                                     {{ $gown->category->name ?? 'Collection' }}
                                 </small>
 
+                                <div class="sb-rank-bar-track" aria-label="{{ $gown->reservation_items_count }} reservations">
+                                    <span style="width: {{ max(6, ($gown->reservation_items_count / max($popularMax, 1)) * 100) }}%;"></span>
+                                </div>
+
                             </div>
 
                             <div class="sb-rank-count">
@@ -245,7 +254,7 @@
                                 </strong>
 
                                 <small>
-                                    bookings
+                                    reservations
                                 </small>
                             </div>
 
@@ -315,6 +324,60 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 9px;
+        }
+
+        .sb-report-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .sb-report-period {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 9px;
+            border: 1px solid #eaded2;
+            border-radius: 9px;
+            background: #fffdf9;
+        }
+
+        .sb-report-period > label,
+        .sb-report-custom-range label {
+            color: #806b61;
+            font: 600 11px 'DM Sans', sans-serif;
+        }
+
+        .sb-report-period select,
+        .sb-report-period input {
+            min-height: 32px;
+            padding: 5px 8px;
+            border: 1px solid #e7d9cc;
+            border-radius: 6px;
+            background: #fff;
+            color: #4a3037;
+            font: 12px 'DM Sans', sans-serif;
+        }
+
+        .sb-report-custom-range {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sb-report-filter-button {
+            min-height: 32px;
+            padding: 0 11px;
+            border: 0;
+            border-radius: 6px;
+            background: #f3e8e2;
+            color: #641d35;
+            font: 600 11px 'DM Sans', sans-serif;
+            cursor: pointer;
         }
 
         .sb-report-export-link,
@@ -581,6 +644,10 @@
             background: #d8dcd8;
         }
 
+        .sb-chart-empty {
+            min-height: 225px;
+        }
+
         .sb-chart-column small {
             margin-top: 7px;
             color: #96928d;
@@ -624,6 +691,22 @@
         .sb-rank-info {
             min-width: 0;
             flex: 1;
+        }
+
+        .sb-rank-bar-track {
+            width: 100%;
+            height: 6px;
+            overflow: hidden;
+            margin-top: 9px;
+            border-radius: 99px;
+            background: #f2eae3;
+        }
+
+        .sb-rank-bar-track span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: #9b6570;
         }
 
         .sb-rank-info strong {
@@ -735,6 +818,24 @@
                 flex-direction: column;
             }
 
+            .sb-report-toolbar {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .sb-report-period {
+                width: 100%;
+            }
+
+            .sb-report-custom-range {
+                width: 100%;
+            }
+
+            .sb-report-custom-range input {
+                flex: 1;
+                min-width: 110px;
+            }
+
             .sb-report-stats {
                 grid-template-columns: 1fr;
             }
@@ -772,7 +873,7 @@
             @page { size: A4 landscape; margin: 12mm; }
             .sb-sidebar,
             .sb-sidebar-brand,
-            .sb-report-actions { display: none !important; }
+            .sb-report-toolbar { display: none !important; }
             .sb-main-column,
             .sb-main-content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
             .sb-page { min-height: auto; background: #fff !important; }

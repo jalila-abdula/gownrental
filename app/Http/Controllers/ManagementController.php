@@ -488,36 +488,59 @@ class ManagementController extends Controller
         return back()->with('success', 'Employee information updated.');
     }
 
-    public function reports()
+    public function reports(Request $request)
     {
+        $period = $this->resolveReportPeriod($request);
+        $dateRange = [$period['start_date'], $period['end_date']];
+        $reservationCount = Reservation::whereBetween(DB::raw('DATE(created_at)'), $dateRange)->count();
+        $monthlyCounts = Reservation::whereBetween(DB::raw('DATE(created_at)'), $dateRange)->get(['created_at'])
+            ->groupBy(fn ($reservation) => $reservation->created_at->format('Y-m'))
+            ->map(fn ($rows) => $rows->count());
+        $monthly = $this->reportMonthBuckets($period, $monthlyCounts);
+        $popular = Gown::with('category')->withCount([
+            'reservationItems as reservation_items_count' => fn ($query) => $query->whereHas(
+                'reservation',
+                fn ($reservationQuery) => $reservationQuery->whereBetween(DB::raw('DATE(created_at)'), $dateRange)
+            ),
+        ])->having('reservation_items_count', '>', 0)
+            ->orderByDesc('reservation_items_count')->take(5)->get();
+
         return view('management.reports', [
-            'reservationCount' => Reservation::count(), 'rentalCount' => Reservation::whereIn('status', ['released', 'overdue'])->count(),
-            'paymentTotal' => Payment::where('status', 'verified')->sum('amount'), 'gownCount' => Gown::count(),
+            'period' => $period,
+            'reservationCount' => $reservationCount,
+            'rentalCount' => Reservation::whereIn('status', ['released', 'overdue'])->count(),
+            'paymentTotal' => Payment::where('status', 'verified')->whereBetween(DB::raw('DATE(verified_at)'), $dateRange)->sum('amount'),
+            'gownCount' => Gown::count(),
             'availableCount' => Gown::where('status', 'available')->count(),
-            'popular' => Gown::withCount('reservationItems')->orderByDesc('reservation_items_count')->take(5)->get(),
-            'monthly' => Reservation::whereYear('created_at', now()->year)->get(['created_at'])
-                ->groupBy(fn ($reservation) => $reservation->created_at->month)
-                ->map(fn ($rows) => $rows->count()),
+            'popular' => $popular,
+            'popularMax' => (int) ($popular->max('reservation_items_count') ?? 0),
+            'monthly' => $monthly,
         ]);
     }
 
-    public function exportReports()
+    public function exportReports(Request $request)
     {
-        $year = now()->year;
-        $reservationCount = Reservation::count();
+        $period = $this->resolveReportPeriod($request);
+        $dateRange = [$period['start_date'], $period['end_date']];
+        $reservationCount = Reservation::whereBetween(DB::raw('DATE(created_at)'), $dateRange)->count();
         $rentalCount = Reservation::whereIn('status', ['released', 'overdue'])->count();
-        $paymentTotal = Payment::where('status', 'verified')->sum('amount');
+        $paymentTotal = Payment::where('status', 'verified')->whereBetween(DB::raw('DATE(verified_at)'), $dateRange)->sum('amount');
         $gownCount = Gown::count();
         $availableCount = Gown::where('status', 'available')->count();
-        $monthly = Reservation::whereYear('created_at', $year)
-            ->selectRaw('MONTH(created_at) as month, COUNT(*) as reservation_count')
-            ->groupByRaw('MONTH(created_at)')
-            ->pluck('reservation_count', 'month');
-        $popular = Gown::with('category')->withCount('reservationItems')
+        $monthlyCounts = Reservation::whereBetween(DB::raw('DATE(created_at)'), $dateRange)->get(['created_at'])
+            ->groupBy(fn ($reservation) => $reservation->created_at->format('Y-m'))
+            ->map(fn ($rows) => $rows->count());
+        $monthly = $this->reportMonthBuckets($period, $monthlyCounts);
+        $popular = Gown::with('category')->withCount([
+            'reservationItems as reservation_items_count' => fn ($query) => $query->whereHas(
+                'reservation',
+                fn ($reservationQuery) => $reservationQuery->whereBetween(DB::raw('DATE(created_at)'), $dateRange)
+            ),
+        ])->having('reservation_items_count', '>', 0)
             ->orderByDesc('reservation_items_count')->take(5)->get();
 
         return response()->streamDownload(function () use (
-            $year,
+            $period,
             $reservationCount,
             $rentalCount,
             $paymentTotal,
@@ -538,6 +561,7 @@ class ManagementController extends Controller
 
             $writeRow(['Business report', 'Shyra Beautique']);
             $writeRow(['Generated at', now()->format('Y-m-d H:i:s')]);
+            $writeRow(['Period', $period['label'], $period['start_date'], $period['end_date']]);
             $writeRow([]);
             $writeRow(['Summary', 'Metric', 'Value']);
             $writeRow(['Summary', 'Total reservations', $reservationCount]);
@@ -546,21 +570,76 @@ class ManagementController extends Controller
             $writeRow(['Summary', 'Available gowns', $availableCount]);
             $writeRow(['Summary', 'Total gowns', $gownCount]);
             $writeRow([]);
-            $writeRow(['Monthly reservations', 'Year', $year]);
+            $writeRow(['Monthly reservations', $period['start_date'], $period['end_date']]);
             $writeRow(['Month', 'Reservations']);
-            for ($month = 1; $month <= 12; $month++) {
-                $writeRow([\Carbon\Carbon::create()->month($month)->format('F'), $monthly->get($month, 0)]);
+            foreach ($monthly as $month) {
+                $writeRow([$month['label'], $month['value']]);
             }
             $writeRow([]);
-            $writeRow(['Most reserved gowns', 'Category', 'Bookings']);
+            $writeRow(['Most reserved gowns', 'Category', 'Reservations']);
             foreach ($popular as $gown) {
                 $writeRow([$gown->name, $gown->category->name ?? 'Collection', $gown->reservation_items_count]);
             }
 
             fclose($stream);
-        }, 'shyra-business-report-' . now()->format('Y-m-d') . '.csv', [
+        }, 'shyra-business-report-' . $period['start_date'] . '-to-' . $period['end_date'] . '.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    private function resolveReportPeriod(Request $request): array
+    {
+        $filters = $request->validate([
+            'period' => ['nullable', Rule::in(['today', 'this_week', 'this_month', 'this_year', 'custom'])],
+            'start_date' => ['nullable', 'date', 'required_if:period,custom'],
+            'end_date' => ['nullable', 'date', 'required_if:period,custom', 'after_or_equal:start_date'],
+        ]);
+        $key = $filters['period'] ?? 'this_year';
+        $now = Carbon::now();
+
+        [$start, $end] = match ($key) {
+            'today' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'this_week' => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            'this_month' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+            'custom' => [Carbon::parse($filters['start_date'])->startOfDay(), Carbon::parse($filters['end_date'])->endOfDay()],
+            default => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+        };
+
+        $startDate = $start->toDateString();
+        $endDate = $end->toDateString();
+        $label = match ($key) {
+            'today' => 'Today',
+            'this_week' => 'This week',
+            'this_month' => 'This month',
+            'this_year' => 'This year',
+            default => Carbon::parse($startDate)->format('M j, Y') . ' to ' . Carbon::parse($endDate)->format('M j, Y'),
+        };
+
+        return [
+            'key' => $key,
+            'label' => $label,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+    }
+
+    private function reportMonthBuckets(array $period, $monthlyCounts): array
+    {
+        $start = Carbon::parse($period['start_date'])->startOfMonth();
+        $end = Carbon::parse($period['end_date'])->startOfMonth();
+        $showYear = $start->year !== $end->year;
+        $months = [];
+
+        while ($start->lte($end)) {
+            $key = $start->format('Y-m');
+            $months[$key] = [
+                'label' => $start->format($showYear ? 'M y' : 'M'),
+                'value' => (int) $monthlyCounts->get($key, 0),
+            ];
+            $start->addMonth();
+        }
+
+        return $months;
     }
 
     public function settings()

@@ -13,7 +13,12 @@ class GownController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Gown::with(['category', 'accessories'])->latest();
+        $query = Gown::with(['category', 'accessories'])->withCount([
+            'reservationItems as bookings_count' => fn ($items) => $items->whereHas(
+                'reservation',
+                fn ($reservations) => $reservations->whereNotIn('status', ['cancelled', 'rejected'])
+            ),
+        ])->latest();
         if ($request->filled('q')) {
             $term = $request->string('q');
             $query->where(fn ($builder) => $builder->where('name', 'like', "%$term%")
@@ -22,10 +27,18 @@ class GownController extends Controller
         }
         if ($request->filled('category')) $query->where('category_id', $request->integer('category'));
         if ($request->filled('status')) $query->where('status', $request->string('status'));
+        if ($request->filled('condition')) $query->where('condition', $request->string('condition'));
         $gowns = $query->paginate(15)->withQueryString();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $accessories = Accessory::where('status', 'available')->orderBy('name')->get();
+        $inventoryStats = [
+            'total' => Gown::count(),
+            'available' => Gown::where('status', 'available')->count(),
+            'rented' => Gown::where('status', 'rented')->count(),
+            'maintenance' => Gown::whereIn('status', ['for_cleaning', 'under_maintenance', 'damaged'])->count(),
+        ];
 
-        return view('gowns.index', compact('gowns', 'categories'));
+        return view('gowns.index', compact('gowns', 'categories', 'accessories', 'inventoryStats'));
     }
 
 

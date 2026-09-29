@@ -24,8 +24,20 @@ class DashboardController extends Controller
     public function index()
     {
         $customer = Customer::where('user_id', auth()->id())->first();
-        $recent = $customer ? Reservation::with('items.gown')->where('customer_id', $customer->id)->latest()->first() : null;
-        return view('customer.dashboard', ['featured' => Gown::with('category')->whereIn('status', ['available', 'reserved', 'rented'])->latest()->take(4)->get(), 'recent' => $recent]);
+        $rentals = $customer ? Reservation::with('items.gown')
+            ->where('customer_id', $customer->id)
+            ->whereIn('status', ['pending', 'awaiting_payment', 'confirmed', 'ready_for_pickup', 'released', 'overdue'])
+            ->where(fn($query) => $query->whereDate('return_date', '>=', today())
+                ->orWhereIn('status', ['released', 'overdue']))
+            ->orderBy('return_date')
+            ->orderBy('pickup_date')
+            ->take(5)
+            ->get() : collect();
+
+        return view('customer.dashboard', [
+            'featured' => Gown::with('category')->whereIn('status', ['available', 'reserved', 'rented'])->latest()->take(4)->get(),
+            'rentals' => $rentals,
+        ]);
     }
 
     public function catalog()

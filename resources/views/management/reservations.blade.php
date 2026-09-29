@@ -27,80 +27,99 @@
                 <button class="sb-btn" type="submit">Filter</button>
             </form>
 
-            <div class="sb-ops-list">
-                @forelse($reservations as $reservation)
-                    <article class="sb-panel sb-booking">
-                        <div class="sb-booking-top">
-                            <div>
-                                <span class="sb-kicker">{{ $reservation->reservation_code }}</span>
-                                <h2>{{ $reservation->customer->full_name ?? 'Guest' }}</h2>
-                                <p>{{ $reservation->customer->contact_number ?? 'No contact on file' }} ·
-                                    {{ $reservation->customer->email ?? '' }}</p>
-                            </div>
-                            <span class="sb-status">{{ ucfirst(str_replace('_', ' ', $reservation->status)) }}</span>
-                        </div>
-
-                        <div class="sb-booking-info">
-                            <div>
-                                <small>GOWN</small><b>{{ $reservation->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') ?: 'Gown' }}</b>
-                            </div>
-                            <div><small>RENTAL DATES</small><b>{{ $reservation->pickup_date?->format('M d') }} -
-                                    {{ $reservation->return_date?->format('M d, Y') }}</b></div>
-                            <div><small>TOTAL / BALANCE</small><b>&#8369;{{ number_format($reservation->grand_total, 2) }} /
-                                    &#8369;{{ number_format($reservation->balance, 2) }}</b></div>
-                        </div>
-
-                        <div class="sb-booking-actions">
-                            <form method="POST" action="{{ route($base . '.reservations.update', $reservation) }}">
-                                @csrf
-                                @method('PATCH')
-                                @php
-                                    $statusChoices = match ($reservation->status) {
-                                        'pending', 'awaiting_payment' => ['pending', 'confirmed', 'cancelled', 'rejected'],
-                                        'confirmed' => ['confirmed', 'ready_for_pickup', 'cancelled', 'rejected'],
-                                        'ready_for_pickup' => ['ready_for_pickup', 'cancelled'],
-                                        'returned' => ['returned', 'completed'],
-                                        default => [$reservation->status],
-                                    };
-                                @endphp
-                                <select name="status">
-                                    @foreach($statusChoices as $status)
-                                        <option value="{{ $status }}" @selected($reservation->status === $status)>
-                                            {{ ucfirst(str_replace('_', ' ', $status)) }}</option>
-                                    @endforeach
-                                </select>
-                                <input name="admin_notes" placeholder="Staff note (optional)"
-                                    value="{{ $reservation->admin_notes }}">
-                                <button class="sb-small-btn">Update booking</button>
-                            </form>
-
-                            @if($reservation->balance > 0)
-                                <details class="sb-payment-details">
-                                    <summary>Record cash payment</summary>
-                                    <form method="POST" action="{{ route($base . '.payments.store', $reservation) }}">
-                                        @csrf
-                                        <input type="number" min="0.01" step="0.01" max="{{ $reservation->balance }}"
-                                            name="amount" placeholder="Amount (PHP)" required>
-                                        <select name="payment_type">
-                                            <option value="downpayment">Down payment</option>
-                                            <option value="rental_balance">Rental balance</option>
-                                            <option value="security_deposit">Security deposit</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                        <select name="payment_method">
-                                            <option value="cash">Cash</option>
-                                            <option value="gcash">GCash</option>
-                                        </select>
-                                        <button class="sb-small-btn">Save payment</button>
-                                    </form>
-                                </details>
-                            @endif
-                        </div>
-                    </article>
-                @empty
-                    <div class="sb-panel sb-empty">No reservations match your search.</div>
-                @endforelse
-            </div>
+            <section class="sb-panel">
+                <div class="sb-table-wrap sb-ops-table-wrap">
+                    <table class="sb-table sb-ops-table sb-ops-table--reservations">
+                        <thead>
+                            <tr>
+                                <th>RESERVATION</th>
+                                <th>CUSTOMER</th>
+                                <th>GOWN</th>
+                                <th>RENTAL DATES</th>
+                                <th>TOTAL / BALANCE</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($reservations as $reservation)
+                                <tr>
+                                    <td data-label="Reservation">
+                                        <strong>{{ $reservation->reservation_code }}</strong>
+                                        <small class="sb-cell-sub">{{ $reservation->created_at?->format('M d, Y') }}</small>
+                                    </td>
+                                    <td data-label="Customer">
+                                        <strong>{{ $reservation->customer->full_name ?? 'Guest' }}</strong>
+                                        <small class="sb-cell-sub">{{ $reservation->customer->contact_number ?? 'No contact' }}</small>
+                                        <small class="sb-cell-sub">{{ $reservation->customer->email ?? '' }}</small>
+                                    </td>
+                                    <td data-label="Gown">{{ $reservation->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') ?: 'Gown' }}</td>
+                                    <td data-label="Rental dates">{{ $reservation->pickup_date?->format('M d') }} – {{ $reservation->return_date?->format('M d, Y') }}</td>
+                                    <td data-label="Total / balance">
+                                        <strong>&#8369;{{ number_format($reservation->grand_total, 2) }}</strong>
+                                        <small class="sb-cell-sub">Balance &#8369;{{ number_format($reservation->balance, 2) }}</small>
+                                    </td>
+                                    <td data-label="Status"><span class="sb-status">{{ ucfirst(str_replace('_', ' ', $reservation->status)) }}</span></td>
+                                    <td data-label="Actions">
+                                        <details class="sb-row-actions">
+                                            <summary>Manage</summary>
+                                            <form method="POST" action="{{ route($base . '.reservations.update', $reservation) }}" class="sb-row-action-form">
+                                                @csrf
+                                                @method('PATCH')
+                                                @php
+                                                    $statusChoices = match ($reservation->status) {
+                                                        'pending', 'awaiting_payment' => ['pending', 'confirmed', 'cancelled', 'rejected'],
+                                                        'confirmed' => ['confirmed', 'ready_for_pickup', 'cancelled', 'rejected'],
+                                                        'ready_for_pickup' => ['ready_for_pickup', 'cancelled'],
+                                                        'returned' => ['returned', 'completed'],
+                                                        default => [$reservation->status],
+                                                    };
+                                                @endphp
+                                                <label>Status
+                                                    <select name="status">
+                                                        @foreach($statusChoices as $status)
+                                                            <option value="{{ $status }}" @selected($reservation->status === $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </label>
+                                                <label>Staff note
+                                                    <input name="admin_notes" placeholder="Optional note" value="{{ $reservation->admin_notes }}">
+                                                </label>
+                                                <button class="sb-small-btn">Update booking</button>
+                                            </form>
+                                            @if($reservation->balance > 0)
+                                                <form method="POST" action="{{ route($base . '.payments.store', $reservation) }}" class="sb-row-action-form">
+                                                    @csrf
+                                                    <strong>Record cash payment</strong>
+                                                    <input type="number" min="0.01" step="0.01" max="{{ $reservation->balance }}" name="amount" placeholder="Amount (PHP)" required>
+                                                    <select name="payment_type">
+                                                        <option value="downpayment">Down payment</option>
+                                                        <option value="rental_balance">Rental balance</option>
+                                                        <option value="security_deposit">Security deposit</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                    <select name="payment_method">
+                                                        <option value="cash">Cash</option>
+                                                        <option value="gcash">GCash</option>
+                                                    </select>
+                                                    <button class="sb-small-btn">Save payment</button>
+                                                </form>
+                                            @endif
+                                        </details>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="sb-empty sb-empty-state">
+                                        <strong>No reservations yet</strong>
+                                        <small>Customer booking requests will appear here for review.</small>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <div class="sb-pagination">{{ $reservations->links() }}</div>
         </div>
