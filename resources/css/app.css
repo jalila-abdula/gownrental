@@ -1716,3 +1716,41 @@ body{background:#fbf8f2;color:#303a34;font-family:'DM Sans',sans-serif}
     width: 100%;
     box-sizing: border-box;
 }
+
+.sb-customer-reservation-card { margin-bottom: 16px; }
+.sb-customer-reservation-card > .sb-panel-head h2 { margin: 5px 0 0; }
+.sb-customer-reservation-card > .sb-section-subtitle,
+.sb-customer-finance-grid .sb-section-subtitle { margin: 18px 20px 9px; font-size: 13px; color: #465048; }
+.sb-customer-finance-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 18px; margin-top: 8px; }
+.sb-customer-detail-summary { margin-bottom: 28px; }
+.sb-customer-detail-summary .sb-booking-info { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 20px 16px; }
+@media (max-width: 760px) {
+    .sb-customer-finance-grid { grid-template-columns: 1fr; }
+    .sb-customer-detail-summary .sb-booking-info { grid-template-columns: 1fr; }
+}
+
+.sb-customer-flow { padding: 24px; }
+.sb-flow-step { padding: 5px 0 23px; margin-bottom: 20px; border-bottom: 1px solid #eee6dc; }
+.sb-flow-step h2 { margin: 6px 0 15px; font: 600 21px 'Playfair Display',serif; color: #3c463e; }
+.sb-selected-gown,.sb-payment-breakdown { padding: 14px 16px; margin: 12px 0; border: 1px solid #eee6dc; border-radius: 9px; background: #fffdf8; }
+.sb-selected-gown b,.sb-selected-gown small,.sb-selected-gown strong { display: block; margin-bottom: 5px; }
+.sb-agreement { padding: 16px; margin: 15px 0; border: 1px solid #e8ded0; border-radius: 9px; background: #faf7f1; }
+.sb-agreement h3,.sb-payment-breakdown h3 { margin: 0 0 9px; color: #465048; font-size: 14px; }
+.sb-agreement ol { padding-left: 20px; color: #687068; font-size: 11px; line-height: 1.7; }
+.sb-agreement-check { display: flex!important; align-items: flex-start; gap: 9px; }
+.sb-agreement-check input { width: auto!important; margin: 2px 0 0!important; }
+.sb-payment-breakdown>div { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; color: #687068; font-size: 12px; }
+.sb-payment-breakdown>div:last-child { border-top: 1px solid #eee6dc; margin-top: 6px; padding-top: 10px; color: #a45e4c; font-weight: 700; }
+.sb-heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sb-step-progress { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; list-style: none; padding: 0; margin: 0 0 25px; }
+.sb-step-progress li { display: flex; align-items: center; gap: 9px; padding: 11px 13px; border-bottom: 2px solid #e8e5df; color: #888d85; font-size: 11px; }
+.sb-step-progress li span { display: grid; place-items: center; width: 25px; height: 25px; flex: 0 0 25px; border-radius: 50%; background: #efeee9; color: #747a72; font-weight: 700; }
+.sb-step-progress li.is-active { border-color: #c87561; color: #4c574e; }
+.sb-step-progress li.is-active span,.sb-step-progress li.is-complete span { background: #c87561; color: #fff; }
+.sb-step-progress li.is-complete { border-color: #d5b09c; color: #69756a; }
+.sb-step-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid #eee6dc; }
+.sb-step-controls [data-step-count] { margin: 0 auto; color: #7a8179; font-size: 11px; }
+.sb-step-controls button:disabled { opacity: .45; cursor: not-allowed; }
+[data-reservation-wizard] [hidden] { display: none !important; }
+@media (max-width: 600px) { .sb-step-progress li { justify-content: center; padding: 8px 4px; } .sb-step-progress li b { display: none; } .sb-step-controls { flex-wrap: wrap; } }
+@media (max-width: 600px) { .sb-customer-flow { padding: 16px; } .sb-heading-actions { align-items: flex-start; flex-direction: column; } }

@@ -46,38 +46,26 @@
                     <div class="sb-panel-head">
                         <div><h2>Maintenance log</h2><p>{{ $maintenanceRecords->total() }} recorded jobs</p></div>
                     </div>
-                    <div class="sb-team-list">
+                    <div class="sb-table-wrap"><table class="sb-table"><thead><tr><th>GOWN</th><th>WORK</th><th>DATE</th><th>COST / STATUS</th><th>ACTION</th></tr></thead><tbody>
                         @forelse($maintenanceRecords as $record)
-                            <article class="sb-team-row sb-maintenance-row">
-                                <div class="sb-team-copy">
-                                    <b>{{ $record->gown->name ?? 'Removed gown' }}</b>
-                                    <small>{{ $record->maintenance_type }} · {{ $record->maintenance_date?->format('M d, Y') }}<br>{{ $record->description }}<br>Cost: ₱{{ number_format($record->cost, 2) }} · {{ ucfirst($record->status) }}</small>
-                                    @if($record->notes)<small>{{ $record->notes }}</small>@endif
-                                </div>
-                                @if($record->status === 'pending')
-                                    <details class="sb-employee-edit">
-                                        <summary>Complete job</summary>
-                                        <form method="POST" action="{{ route($base.'.maintenance.complete', $record) }}">
-                                            @csrf
-                                            <label>Final condition
-                                                <select name="condition" required>
-                                                    @foreach(['excellent', 'good', 'fair', 'damaged'] as $condition)
-                                                        <option value="{{ $condition }}" @selected(($record->gown->condition ?? 'good') === $condition)>{{ ucfirst($condition) }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </label>
-                                            <label>Completion note<input name="completion_notes" placeholder="Optional repair outcome"></label>
-                                            <button class="sb-small-btn">Close maintenance job</button>
-                                        </form>
-                                    </details>
-                                @else
-                                    <span class="sb-status">Completed</span>
-                                @endif
-                            </article>
+                            <tr>
+                                <td><strong>{{ $record->gown->name ?? 'Removed gown' }}</strong><small class="sb-cell-sub">{{ $record->gown->gown_code ?? '' }}</small></td>
+                                <td>{{ $record->maintenance_type }}<small class="sb-cell-sub">{{ $record->description }} @if($record->notes)<br>{{ $record->notes }}@endif</small></td>
+                                <td>{{ $record->maintenance_date?->format('M d, Y') }}</td>
+                                <td>₱{{ number_format($record->cost, 2) }}<small class="sb-cell-sub">{{ ucfirst($record->status) }}</small></td>
+                                <td>
+                                    @if($record->status === 'pending')
+                                        <details class="sb-employee-edit"><summary>Complete job</summary><form method="POST" action="{{ route($base.'.maintenance.complete', $record) }}">@csrf
+                                            <label>Final condition<select name="condition" required>@foreach(['excellent', 'good', 'fair', 'damaged'] as $condition)<option value="{{ $condition }}" @selected(($record->gown->condition ?? 'good') === $condition)>{{ ucfirst($condition) }}</option>@endforeach</select></label>
+                                            <label>Completion note<input name="completion_notes" placeholder="Optional repair outcome"></label><button class="sb-small-btn">Close maintenance job</button>
+                                        </form></details>
+                                    @else<span class="sb-status">Completed</span>@endif
+                                </td>
+                            </tr>
                         @empty
-                            <div class="sb-empty">No maintenance jobs have been logged.</div>
+                            <tr><td colspan="5" class="sb-empty">No maintenance jobs have been logged.</td></tr>
                         @endforelse
-                    </div>
+                    </tbody></table></div>
                     <div class="sb-pagination">{{ $maintenanceRecords->links() }}</div>
                 </section>
             </div>

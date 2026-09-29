@@ -14,85 +14,44 @@
                 <div class="sb-success">{{ session('success') }}</div>
             @endif
 
-            <div class="sb-ops-list">
+            <section class="sb-panel"><div class="sb-table-wrap"><table class="sb-table">
+                <thead><tr><th>RESERVATION</th><th>CUSTOMER / GOWN</th><th>PICKUP / DUE BACK</th><th>HANDOFF</th><th>STATUS / ID</th><th>ACTION</th></tr></thead><tbody>
                 @forelse($rentals as $rental)
-                    <article class="sb-panel sb-booking">
-
-                        <div class="sb-booking-top">
-                            <div>
-                                <span class="sb-kicker">{{ $rental->reservation_code }}</span>
-                                <h2>{{ $rental->customer->full_name ?? 'Guest' }}</h2>
-                                <p>{{ $rental->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') }}</p>
-                            </div>
-                            <span class="sb-status">{{ ucfirst(str_replace('_', ' ', $rental->status)) }}</span>
-                        </div>
-
-                        <div class="sb-booking-info">
-                            <div>
-                                <small>PICKUP</small>
-                                <b>{{ $rental->pickup_date?->format('M d, Y') }}</b>
-                            </div>
-                            <div>
-                                <small>DUE BACK</small>
-                                <b>{{ $rental->return_date?->format('M d, Y') }}</b>
-                            </div>
-                            <div>
-                                <small>HANDOFF</small>
-                                <b>{{ $rental->gownRelease?->release_date?->format('M d, Y') ?? 'Not released' }}</b>
-                            </div>
-                        </div>
-
-                        @if(in_array($rental->status, ['confirmed', 'ready_for_pickup'], true))
-                            <form method="POST" action="{{ route($base . '.rentals.release', $rental) }}"
-                                class="sb-rental-action">
-                                @csrf
-                                <h3>Release gown to customer</h3>
-                                <div class="sb-rental-formrow">
-                                    <label>Condition at handoff
-                                        <select name="condition_before" required>
-                                            <option value="excellent">Excellent</option>
-                                            <option value="good" selected>Good</option>
-                                            <option value="fair">Fair</option>
-                                            <option value="damaged">Damaged</option>
-                                        </select>
-                                    </label>
-                                    <label>Handoff note
-                                        <input name="notes" placeholder="Optional note">
-                                    </label>
-                                    <button class="sb-small-btn">Record pickup</button>
-                                </div>
-                            </form>
-                        @elseif(in_array($rental->status, ['released', 'overdue'], true))
-                            <form method="POST" action="{{ route($base . '.rentals.return', $rental) }}"
-                                class="sb-rental-action">
-                                @csrf
-                                <h3>Inspect returned gown</h3>
-                                <div class="sb-rental-formrow">
-                                    <label>Condition on return
-                                        <select name="condition_after" required>
-                                            <option value="excellent">Excellent</option>
-                                            <option value="good" selected>Good</option>
-                                            <option value="fair">Fair</option>
-                                            <option value="damaged">Damaged</option>
-                                        </select>
-                                    </label>
-                                    <label>Repair fee if damaged
-                                        <input type="number" min="0" step="0.01" name="repair_cost" placeholder="₱0.00">
-                                    </label>
-                                    <label>Inspection note
-                                        <input name="notes" placeholder="Condition or issue observed">
-                                    </label>
-                                    <button class="sb-small-btn">Record return</button>
-                                </div>
-                            </form>
-                        @endif
-
-                    </article>
+                    <tr>
+                        <td><strong>{{ $rental->reservation_code }}</strong></td>
+                        <td><strong>{{ $rental->customer->full_name ?? 'Guest' }}</strong><small class="sb-cell-sub">{{ $rental->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') }}</small></td>
+                        <td>{{ $rental->pickup_date?->format('M d, Y') }}<small class="sb-cell-sub">Due {{ $rental->return_date?->format('M d, Y') }}</small></td>
+                        <td>{{ $rental->gownRelease?->release_date?->format('M d, Y') ?? 'Not released' }}</td>
+                        <td><span class="sb-status">{{ ucfirst(str_replace('_', ' ', $rental->status)) }}</span><small class="sb-cell-sub">ID: {{ ucfirst($rental->collateral_status ?? 'not received') }}{{ $rental->id_safe_slot ? ' · '.$rental->id_safe_slot : '' }}</small>@if($rental->physical_id_photo_path || $rental->government_id_photo_path)<a class="sb-text-link" target="_blank" rel="noopener" href="{{ route('reservations.collateral-photo', ['reservation' => $rental, 'type' => $rental->physical_id_photo_path ? 'physical' : 'digital']) }}">View ID photo</a>@endif</td>
+                        <td>
+                            @if(in_array($rental->status, ['confirmed', 'ready_for_pickup'], true))
+                                <form method="POST" enctype="multipart/form-data" action="{{ route($base . '.rentals.release', $rental) }}" class="sb-rental-action">@csrf
+                                    <label>Condition <select name="condition_before" required><option value="excellent">Excellent</option><option value="good" selected>Good</option><option value="fair">Fair</option><option value="damaged">Damaged</option></select></label>
+                                    @if(!$rental->physical_id_photo_path)<label>Physical ID photo<input type="file" name="physical_id_photo" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>@endif
+                                    <label>Secure safe slot<input name="id_safe_slot" value="{{ $rental->id_safe_slot }}" placeholder="Safe slot" required></label>
+                                    <input name="notes" placeholder="Handoff note (optional)"><button class="sb-small-btn">Record pickup</button>
+                                </form>
+                            @elseif(in_array($rental->status, ['released', 'overdue'], true))
+                                <form method="POST" action="{{ route($base . '.rentals.return', $rental) }}" class="sb-rental-action">@csrf
+                                    <label>Condition <select name="condition_after" required><option value="excellent">Excellent</option><option value="good" selected>Good</option><option value="fair">Fair</option><option value="damaged">Damaged</option></select></label>
+                                    <input type="number" min="0" step="0.01" name="repair_cost" placeholder="Repair or replacement cost (PHP)">
+                                    <input name="notes" placeholder="Inspection note"><button class="sb-small-btn">Record return</button>
+                                </form>
+                            @elseif(in_array($rental->status, ['returned', 'completed'], true) && $rental->collateral_status === 'held')
+                                @if($rental->balance <= 0)
+                                    <form method="POST" action="{{ route($base . '.rentals.release-id', $rental) }}">@csrf<button class="sb-small-btn">Release original ID</button></form>
+                                @else
+                                    <span class="sb-cell-sub">Keep ID in safe until ₱{{ number_format($rental->balance, 2) }} is paid.</span>
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
+                    </tr>
                 @empty
-                    <div class="sb-panel sb-empty">There are no confirmed pickups or active rentals right now.</div>
+                    <tr><td colspan="6" class="sb-empty">There are no confirmed pickups or active rentals right now.</td></tr>
                 @endforelse
-            </div>
-
+                </tbody></table></div></section>
             <section class="sb-panel sb-cleaning-panel">
                 <div class="sb-panel-head">
                     <div>

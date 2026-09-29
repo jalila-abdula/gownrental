@@ -28,30 +28,15 @@
                 <button class="sb-btn" type="submit">Filter</button>
             </form>
 
-            <div class="sb-ops-list">
+            <section class="sb-panel"><div class="sb-table-wrap"><table class="sb-table"><thead><tr><th>RESERVATION</th><th>CUSTOMER</th><th>GOWN</th><th>DATES</th><th>TOTAL / BALANCE</th><th>STATUS & ACTIONS</th></tr></thead><tbody>
                 @forelse($reservations as $reservation)
-                    <article class="sb-panel sb-booking">
-                        <div class="sb-booking-top">
-                            <div>
-                                <span class="sb-kicker">{{ $reservation->reservation_code }}</span>
-                                <h2>{{ $reservation->customer->full_name ?? 'Guest' }}</h2>
-                                <p>{{ $reservation->customer->contact_number ?? 'No contact on file' }} ·
-                                    {{ $reservation->customer->email ?? '' }}</p>
-                            </div>
-                            <span class="sb-status">{{ ucfirst(str_replace('_', ' ', $reservation->status)) }}</span>
-                        </div>
-
-                        <div class="sb-booking-info">
-                            <div>
-                                <small>GOWN</small><b>{{ $reservation->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') ?: 'Gown' }}</b>
-                            </div>
-                            <div><small>RENTAL DATES</small><b>{{ $reservation->pickup_date?->format('M d') }} -
-                                    {{ $reservation->return_date?->format('M d, Y') }}</b></div>
-                            <div><small>TOTAL / BALANCE</small><b>&#8369;{{ number_format($reservation->grand_total, 2) }} /
-                                    &#8369;{{ number_format($reservation->balance, 2) }}</b></div>
-                        </div>
-
-                        <div class="sb-booking-actions">
+                    <tr>
+                        <td><strong>{{ $reservation->reservation_code }}</strong><small class="sb-cell-sub">{{ $reservation->created_at?->format('M d, Y') }}</small></td>
+                        <td><strong>{{ $reservation->customer->full_name ?? 'Guest' }}</strong><small class="sb-cell-sub">{{ $reservation->customer->contact_number ?? 'No contact' }}<br>{{ $reservation->customer->email ?? '' }}</small></td>
+                        <td>{{ $reservation->items->map(fn($item) => $item->gown?->name)->filter()->join(', ') ?: 'Gown' }}</td>
+                        <td>{{ $reservation->pickup_date?->format('M d, Y') }}<small class="sb-cell-sub">to {{ $reservation->return_date?->format('M d, Y') }}</small></td>
+                        <td>₱{{ number_format($reservation->grand_total, 2) }}<small class="sb-cell-sub">Balance ₱{{ number_format($reservation->balance, 2) }}</small></td>
+                        <td><span class="sb-status">{{ ucfirst(str_replace('_', ' ', $reservation->status)) }}</span><div class="sb-booking-actions">
                             <form method="POST" action="{{ route($base . '.reservations.update', $reservation) }}">
                                 @csrf
                                 @method('PATCH')
@@ -85,23 +70,22 @@
                                         <select name="payment_type">
                                             <option value="downpayment">Down payment</option>
                                             <option value="rental_balance">Rental balance</option>
-                                            <option value="security_deposit">Security deposit</option>
                                             <option value="other">Other</option>
                                         </select>
                                         <select name="payment_method">
                                             <option value="cash">Cash</option>
                                             <option value="gcash">GCash</option>
+                                            <option value="card">Card</option>
                                         </select>
                                         <button class="sb-small-btn">Save payment</button>
                                     </form>
                                 </details>
                             @endif
-                        </div>
-                    </article>
+                        </div></td></tr>
                 @empty
-                    <div class="sb-panel sb-empty">No reservations match your search.</div>
+                    <tr><td colspan="6" class="sb-empty">No reservations match your search.</td></tr>
                 @endforelse
-            </div>
+            </tbody></table></div></section>
 
             <div class="sb-pagination">{{ $reservations->links() }}</div>
         </div>

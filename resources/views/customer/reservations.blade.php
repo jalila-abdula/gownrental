@@ -38,7 +38,9 @@
                             <div><small>PAID</small><b>₱{{ number_format($reservation->amount_paid, 2) }}</b></div>
                             <div><small>BALANCE</small><b>₱{{ number_format($reservation->balance, 2) }}</b></div>
                             <div><small>PAYMENT STATUS</small><b>{{ $reservation->balance <= 0 ? 'Paid' : ($reservation->amount_paid > 0 ? 'Partially paid' : ($pendingAmount > 0 ? 'Proof under review' : 'Payment due')) }}</b></div>
+                            <div><small>PHYSICAL ID COLLATERAL</small><b>{{ ucfirst(str_replace('_', ' ', $reservation->collateral_status ?? 'not received')) }}</b></div>
                         </div>
+                        @if($reservation->measurements)<p class="sb-form-intro">Recorded measurements: {{ $reservation->measurements }}</p>@endif
 
                         @if(in_array($reservation->status, ['pending', 'awaiting_payment'], true))
                             <form method="POST" action="{{ route('customer.reservations.cancel', $reservation) }}" class="sb-cancel-booking" onsubmit="return confirm('Cancel this reservation request?')">
@@ -74,13 +76,12 @@
                                 @if($payableNow > 0 && !in_array($reservation->status, ['cancelled', 'rejected', 'completed'], true))
                                     <form method="POST" action="{{ route('customer.reservations.payments.store', $reservation) }}" enctype="multipart/form-data" class="sb-customer-payment-form">
                                         @csrf
-                                        <h3>Submit GCash payment</h3>
+                                        <h3>Submit GCash payment</h3><p>Any down payment is non-refundable.</p>
                                         <p>Upload a clear screenshot or receipt. Your balance changes after staff verify it.</p>
                                         <label>Payment type
                                             <select name="payment_type" required>
                                                 <option value="downpayment">Down payment</option>
                                                 <option value="rental_balance">Rental balance</option>
-                                                <option value="security_deposit">Security deposit</option>
                                                 <option value="penalty">Penalty</option>
                                             </select>
                                         </label>

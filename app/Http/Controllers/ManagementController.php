@@ -17,23 +17,122 @@ class ManagementController extends Controller
     public function rentals()
     {
         return view('management.rentals', [
-            'rentals' => Reservation::with(['customer', 'items.gown', 'gownRelease'])
-                ->whereIn('status', ['confirmed', 'ready_for_pickup', 'released', 'overdue'])->orderBy('pickup_date')->get(),
+            'rentals' => Reservation::with(['customer', 'items.gown', 'gownRelease', 'gownReturn'])
+                ->whereIn('status', ['confirmed', 'ready_for_pickup', 'released', 'overdue', 'returned', 'completed'])->orderBy('pickup_date')->get(),
             'cleanings' => CleaningRecord::with('gown')->where('status', 'pending')->latest()->get(),
             'base' => request()->user()->role,
         ]);
+    }
+
+    public function employeeReservationForm(Gown $gown)
+    {
+        abort_unless($gown->status === 'available', 422, 'Only gowns currently marked available can start a new reservation.');
+        return view('management.reservation-create', [
+            'customers' => Customer::where('status', 'active')->orderBy('full_name')->get(),
+            'gown' => $gown,
+            'lateFeePerDay' => (float) SystemSetting::where('setting_key', 'late_fee_per_day')->value('setting_value'),
+        ]);
+    }
+
+    public function storeEmployeeReservation(Request $request)
+    {
+        $data = $request->validate([
+            'existing_customer_id' => ['nullable', 'exists:customers,id'],
+            'customer_name' => ['required_without:existing_customer_id', 'nullable', 'string', 'max:255'],
+            'customer_email' => ['nullable', 'email', 'max:255'],
+            'contact_number' => ['required_without:existing_customer_id', 'nullable', 'string', 'max:40'],
+            'gown_id' => ['required', 'exists:gowns,id'],
+            'pickup_date' => ['required', 'date', 'after_or_equal:today'],
+            'return_date' => ['required', 'date', 'after_or_equal:pickup_date'],
+            'bust' => ['nullable', 'numeric', 'min:0', 'max:300'],
+            'waist' => ['nullable', 'numeric', 'min:0', 'max:300'],
+            'hips' => ['nullable', 'numeric', 'min:0', 'max:300'],
+            'length' => ['nullable', 'numeric', 'min:0', 'max:400'],
+            'government_id' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'id_safe_slot' => ['required', 'string', 'max:80'],
+            'agreement_accepted' => ['accepted'],
+            'payment_amount' => ['required', 'numeric', 'gt:0'],
+            'payment_method' => ['required', Rule::in(['cash', 'card'])],
+        ]);
+        if (Carbon::parse($data['return_date'])->gt(Carbon::parse($data['pickup_date'])->addDays(3))) {
+            throw ValidationException::withMessages(['return_date' => 'A gown may be rented for up to 3 days from its pickup date.']);
+        }
+        $lateFeePerDay = (float) SystemSetting::where('setting_key', 'late_fee_per_day')->value('setting_value');
+        if ($lateFeePerDay <= 0) {
+            throw ValidationException::withMessages(['return_date' => 'Set the shop late fee per day in settings before accepting reservations.']);
+        }
+
+        $customer = !empty($data['existing_customer_id'])
+            ? Customer::findOrFail($data['existing_customer_id'])
+            : Customer::create([
+                'customer_code' => 'CUS-' . strtoupper(Str::random(8)),
+                'full_name' => $data['customer_name'], 'contact_number' => $data['contact_number'],
+                'email' => $data['customer_email'] ?? null, 'status' => 'active',
+            ]);
+        abort_unless($customer->status === 'active', 422, 'This customer account cannot make new reservations.');
+        $idPath = $request->file('government_id')->store('government-ids', 'local');
+        $measurements = collect(['Bust' => $data['bust'] ?? null, 'Waist' => $data['waist'] ?? null, 'Hips' => $data['hips'] ?? null, 'Length' => $data['length'] ?? null])
+            ->filter(fn ($value) => $value !== null)->map(fn ($value, $key) => $key . ': ' . $value . ' cm')->values()->join('; ');
+
+        $reservation = DB::transaction(function () use ($request, $data, $customer, $idPath, $measurements, $lateFeePerDay) {
+            $gown = Gown::whereKey($data['gown_id'])->lockForUpdate()->firstOrFail();
+            abort_unless($gown->status === 'available', 422, 'This gown is not currently available for new reservations.');
+            $overlap = Reservation::with('gownReturn')->whereNotIn('status', ['cancelled', 'rejected'])
+                ->whereHas('items', fn ($items) => $items->where('gown_id', $gown->id))->get()
+                ->contains(function ($existing) use ($data) {
+                    $end = $existing->gownReturn?->actual_return_date ?? $existing->return_date;
+                    return Carbon::parse($existing->pickup_date)->startOfDay()->lte(Carbon::parse($data['return_date'])->startOfDay())
+                        && Carbon::parse($end)->startOfDay()->addDays(3)->gte(Carbon::parse($data['pickup_date'])->startOfDay());
+                });
+            if ($overlap) throw ValidationException::withMessages(['gown_id' => 'This gown is already booked or in its cleaning period for those dates.']);
+
+            $total = (float) $gown->rental_price;
+            if ((float) $data['payment_amount'] > $total) throw ValidationException::withMessages(['payment_amount' => 'Payment cannot exceed the rental fee.']);
+            $booking = Reservation::create([
+                'reservation_code' => 'SB-' . now()->format('ymd') . '-' . strtoupper(Str::random(5)),
+                'customer_id' => $customer->id, 'created_by' => $request->user()->id,
+                'pickup_date' => $data['pickup_date'], 'return_date' => $data['return_date'],
+                'rental_total' => $total, 'security_deposit_total' => 0, 'late_fee_per_day' => $lateFeePerDay, 'grand_total' => $total,
+                'amount_paid' => $data['payment_amount'], 'balance' => $total - (float) $data['payment_amount'],
+                'status' => 'confirmed', 'measurements' => $measurements ?: null,
+                'government_id_photo_path' => $idPath, 'physical_id_photo_path' => $idPath,
+                'id_safe_slot' => $data['id_safe_slot'], 'agreement_accepted_at' => now(), 'collateral_status' => 'held',
+            ]);
+            $booking->items()->create(['gown_id' => $gown->id, 'rental_price' => $total, 'security_deposit' => 0, 'quantity' => 1]);
+            Payment::create([
+                'reservation_id' => $booking->id, 'customer_id' => $customer->id,
+                'payment_reference' => 'PAY-' . now()->format('ymd') . '-' . strtoupper(Str::random(6)),
+                'payment_type' => (float) $data['payment_amount'] < $total ? 'downpayment' : 'rental_balance',
+                'payment_method' => $data['payment_method'], 'amount' => $data['payment_amount'],
+                'status' => 'verified', 'verified_by' => $request->user()->id, 'verified_at' => now(),
+                'remarks' => (float) $data['payment_amount'] < $total ? 'Non-refundable in-store down payment.' : 'Full in-store rental payment.',
+            ]);
+            return $booking;
+        });
+
+        return redirect()->route($request->user()->role . '.reservations')->with('success', 'In-store reservation ' . $reservation->reservation_code . ' created and payment recorded.');
     }
 
     public function releaseGown(Request $request, Reservation $reservation)
     {
         abort_unless(in_array($reservation->status, ['confirmed', 'ready_for_pickup'], true), 422, 'Only confirmed reservations can be released.');
         abort_if($reservation->pickup_date->isFuture(), 422, 'This rental cannot be released before its pickup date.');
-        $data = $request->validate(['condition_before' => ['required', Rule::in(['excellent', 'good', 'fair', 'damaged'])], 'notes' => ['nullable', 'string', 'max:1000']]);
-        DB::transaction(function () use ($request, $reservation, $data) {
-            GownRelease::updateOrCreate(['reservation_id' => $reservation->id], $data + [
+        $data = $request->validate([
+            'condition_before' => ['required', Rule::in(['excellent', 'good', 'fair', 'damaged'])],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'physical_id_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'id_safe_slot' => ['required', 'string', 'max:80'],
+        ]);
+        if (!$reservation->physical_id_photo_path && !$request->hasFile('physical_id_photo')) {
+            throw ValidationException::withMessages(['physical_id_photo' => 'Capture a photo of the physical ID before storing it.']);
+        }
+        $physicalIdPath = $request->file('physical_id_photo')?->store('government-ids', 'local') ?? $reservation->physical_id_photo_path;
+        DB::transaction(function () use ($request, $reservation, $data, $physicalIdPath) {
+            GownRelease::updateOrCreate(['reservation_id' => $reservation->id], [
+                'condition_before' => $data['condition_before'], 'notes' => $data['notes'] ?? null,
                 'processed_by' => $request->user()->id, 'release_date' => today(), 'release_time' => now()->format('H:i:s'),
             ]);
-            $reservation->update(['status' => 'released']);
+            $reservation->update(['status' => 'released', 'physical_id_photo_path' => $physicalIdPath, 'id_safe_slot' => $data['id_safe_slot'], 'collateral_status' => 'held']);
             foreach ($reservation->items()->with('gown')->get() as $item) $item->gown?->update(['status' => 'rented']);
         });
         return back()->with('success', 'Gown handoff recorded. Rental is now active.');
@@ -70,7 +169,8 @@ class ManagementController extends Controller
                     CleaningRecord::create(['gown_id' => $gown->id, 'processed_by' => $request->user()->id, 'cleaning_date' => today(), 'cleaning_type' => 'Post-rental cleaning', 'status' => 'pending', 'notes' => 'Created after reservation ' . $reservation->reservation_code]);
                 }
             }
-            $lateFee = (float) SystemSetting::where('setting_key', 'late_fee_per_day')->value('setting_value');
+            $lateFee = (float) $reservation->late_fee_per_day;
+            if ($lateFee <= 0) $lateFee = (float) SystemSetting::where('setting_key', 'late_fee_per_day')->value('setting_value');
             if ($lateDays > 0 && $lateFee > 0) {
                 $lateCharge = $lateDays * $lateFee;
                 Penalty::create(['reservation_id' => $reservation->id, 'gown_return_id' => $rentalReturn->id, 'penalty_type' => 'late_return', 'amount' => $lateCharge, 'status' => 'pending']);
@@ -79,6 +179,15 @@ class ManagementController extends Controller
             $reservation->update(['status' => 'returned', 'grand_total' => (float) $reservation->grand_total + $extraCharges, 'balance' => (float) $reservation->balance + $extraCharges]);
         });
         return redirect()->route($request->user()->role . '.rentals')->with('success', 'Return inspection recorded. Any cleaning or charges are now listed on the account.');
+    }
+
+    public function releaseIdCollateral(Request $request, Reservation $reservation)
+    {
+        abort_unless(in_array($reservation->status, ['returned', 'completed'], true), 422, 'The gown must be returned before its ID can be released.');
+        abort_if((float) $reservation->balance > 0, 422, 'Clear all rental, damage, and late charges before releasing the ID.');
+        abort_unless($reservation->collateral_status === 'held', 422, 'There is no held ID collateral to release.');
+        $reservation->update(['collateral_status' => 'released']);
+        return back()->with('success', 'Original ID collateral released to the customer.');
     }
 
     public function completeCleaning(Request $request, CleaningRecord $cleaning)
@@ -204,6 +313,35 @@ class ManagementController extends Controller
         return view('management.customers', ['customers' => $query->paginate(15)->withQueryString()]);
     }
 
+    public function customerDetails(Customer $customer)
+    {
+        $customer->load([
+            'reservations' => fn ($query) => $query->latest(),
+            'reservations.items.gown',
+            'reservations.payments' => fn ($query) => $query->latest(),
+            'reservations.penalties' => fn ($query) => $query->latest(),
+            'reservations.gownReturn',
+        ]);
+        $lateFeePerDay = (float) SystemSetting::where('setting_key', 'late_fee_per_day')->value('setting_value');
+
+        foreach ($customer->reservations as $reservation) {
+            $actualLateDays = (int) ($reservation->gownReturn?->late_days ?? 0);
+            $currentLateDays = 0;
+            if (!$reservation->gownReturn && in_array($reservation->status, ['released', 'overdue'], true) && $reservation->return_date?->isBefore(today())) {
+                $currentLateDays = Carbon::parse($reservation->return_date)->startOfDay()->diffInDays(today(), false);
+            }
+            $reservation->display_late_days = max($actualLateDays, $currentLateDays);
+            $agreedLateFee = (float) $reservation->late_fee_per_day ?: $lateFeePerDay;
+            $reservation->projected_late_fee = $currentLateDays * $agreedLateFee;
+        }
+
+        return view('management.customer-show', [
+            'customer' => $customer,
+            'lateFeePerDay' => $lateFeePerDay,
+            'base' => request()->user()->role,
+        ]);
+    }
+
     public function payments()
     {
         return view('management.payments', ['payments' => Payment::with(['reservation', 'customer'])->latest()->paginate(15)]);
@@ -244,9 +382,18 @@ class ManagementController extends Controller
         return response()->file(Storage::disk('local')->path($payment->proof_of_payment));
     }
 
+    public function collateralPhoto(Request $request, Reservation $reservation, string $type)
+    {
+        abort_unless(in_array($request->user()->role, ['owner', 'employee'], true), 403);
+        abort_unless(in_array($type, ['digital', 'physical'], true), 404);
+        $path = $type === 'physical' ? $reservation->physical_id_photo_path : $reservation->government_id_photo_path;
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+        return response()->file(Storage::disk('local')->path($path));
+    }
+
     public function recordPayment(Request $request, Reservation $reservation)
     {
-        $data = $request->validate(['amount' => ['required', 'numeric', 'gt:0', 'lte:' . (float) $reservation->balance], 'payment_method' => ['required', Rule::in(['cash', 'gcash'])], 'payment_type' => ['required', Rule::in(['downpayment', 'rental_balance', 'security_deposit', 'other'])], 'remarks' => ['nullable', 'string', 'max:500']]);
+        $data = $request->validate(['amount' => ['required', 'numeric', 'gt:0', 'lte:' . (float) $reservation->balance], 'payment_method' => ['required', Rule::in(['cash', 'gcash', 'card'])], 'payment_type' => ['required', Rule::in(['downpayment', 'rental_balance', 'other'])], 'remarks' => ['nullable', 'string', 'max:500']]);
         $reservation->loadMissing('customer');
         $payment = DB::transaction(function () use ($data, $reservation, $request) {
             $lockedReservation = Reservation::whereKey($reservation->id)->lockForUpdate()->firstOrFail();
@@ -263,12 +410,47 @@ class ManagementController extends Controller
             $lockedReservation->update(['amount_paid' => $amountPaid, 'balance' => max(0, (float) $lockedReservation->grand_total - $amountPaid)]);
             return $payment;
         });
+        if ($payment->payment_type === 'downpayment') $payment->update(['remarks' => trim(($payment->remarks ? $payment->remarks . ' ' : '') . 'Non-refundable down payment.')]);
         return back()->with('success', 'Payment ' . $payment->payment_reference . ' recorded.');
     }
 
     public function employees()
     {
         return view('management.employees', ['employees' => Employee::with('user')->latest()->paginate(15)]);
+    }
+
+    public function createEmployeeForm()
+    {
+        return view('management.employee-create');
+    }
+
+    public function employeeDetails(Employee $employee)
+    {
+        $userId = $employee->user_id;
+        $activities = collect()
+            ->concat(GownRelease::with('reservation')->where('processed_by', $userId)->get()->map(fn ($row) => [
+                'date' => $row->created_at, 'action' => 'Gown released',
+                'description' => 'Reservation ' . ($row->reservation?->reservation_code ?? '—') . ' · ' . ucfirst($row->condition_before) . ' condition at handoff',
+            ]))
+            ->concat(GownReturn::with('reservation')->where('processed_by', $userId)->get()->map(fn ($row) => [
+                'date' => $row->created_at, 'action' => 'Gown returned',
+                'description' => 'Reservation ' . ($row->reservation?->reservation_code ?? '—') . ' · ' . $row->late_days . ' late day(s)',
+            ]))
+            ->concat(CleaningRecord::with('gown')->where('processed_by', $userId)->get()->map(fn ($row) => [
+                'date' => $row->updated_at ?? $row->created_at, 'action' => 'Cleaning updated',
+                'description' => ($row->gown?->name ?? 'Gown') . ' · ' . $row->cleaning_type . ' · ' . ucfirst($row->status),
+            ]))
+            ->concat(MaintenanceRecord::with('gown')->where('processed_by', $userId)->get()->map(fn ($row) => [
+                'date' => $row->updated_at ?? $row->created_at, 'action' => 'Maintenance updated',
+                'description' => ($row->gown?->name ?? 'Gown') . ' · ' . $row->maintenance_type . ' · ' . ucfirst($row->status),
+            ]))
+            ->concat(Payment::with('reservation')->where('verified_by', $userId)->get()->map(fn ($row) => [
+                'date' => $row->verified_at ?? $row->updated_at, 'action' => 'Payment recorded or verified',
+                'description' => $row->payment_reference . ' · Reservation ' . ($row->reservation?->reservation_code ?? '—') . ' · ₱' . number_format((float) $row->amount, 2),
+            ]))
+            ->sortByDesc('date')->values();
+
+        return view('management.employee-show', compact('employee', 'activities'));
     }
 
     public function createEmployee(Request $request)
@@ -278,7 +460,7 @@ class ManagementController extends Controller
             $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => Hash::make($data['password']), 'role' => 'employee']);
             Employee::create(['user_id' => $user->id, 'employee_code' => 'EMP-' . strtoupper(Str::random(8)), 'full_name' => $data['name'], 'contact_number' => $data['contact_number'] ?? null, 'position' => $data['position'], 'status' => 'active']);
         });
-        return back()->with('success', 'Employee account created. Share the login details securely.');
+        return redirect()->route('owner.employees')->with('success', 'Employee account created. Share the login details securely.');
     }
 
     public function toggleEmployee(Employee $employee)
@@ -323,7 +505,7 @@ class ManagementController extends Controller
 
     public function saveSettings(Request $request)
     {
-        $data = $request->validate(['shop_name' => ['required', 'string', 'max:120'], 'contact_email' => ['nullable', 'email', 'max:255'], 'contact_number' => ['nullable', 'string', 'max:40'], 'late_fee_per_day' => ['required', 'numeric', 'min:0', 'max:100000']]);
+        $data = $request->validate(['shop_name' => ['required', 'string', 'max:120'], 'contact_email' => ['nullable', 'email', 'max:255'], 'contact_number' => ['nullable', 'string', 'max:40'], 'late_fee_per_day' => ['required', 'numeric', 'min:0.01', 'max:100000']]);
         foreach ($data as $key => $value) SystemSetting::updateOrCreate(['setting_key' => $key], ['setting_value' => (string) $value]);
         return back()->with('success', 'Boutique settings saved.');
     }
