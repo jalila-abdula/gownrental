@@ -63,9 +63,9 @@ Route::middleware(['auth', 'role:owner'])
         Route::get('/settings', [ManagementController::class, 'settings'])->name('settings');
         Route::put('/settings', [ManagementController::class, 'saveSettings'])->name('settings.save');
 
-    Route::resource('categories', CategoryController::class);
-    Route::resource('gowns', GownController::class);
-    Route::resource('accessories', AccessoryController::class);
+        Route::resource('categories', CategoryController::class);
+        Route::resource('gowns', GownController::class);
+        Route::resource('accessories', AccessoryController::class);
 
     });
 
@@ -130,15 +130,17 @@ Route::middleware(['auth', 'role:customer'])
         Route::get('/catalog', [CustomerDashboardController::class, 'catalog'])->name('catalog');
         Route::get('/gowns/{gown}', [CustomerDashboardController::class, 'details'])->name('gowns.show');
         Route::get('/gowns/{gown}/reserve', [CustomerDashboardController::class, 'reserve'])->name('reserve');
+        Route::get('/gowns/{gown}/availability', [CustomerDashboardController::class, 'checkAvailability'])->name('reserve.availability');
         Route::post('/gowns/{gown}/reserve', [CustomerDashboardController::class, 'storeReservation'])->name('reserve.store');
         Route::get('/reservations', [CustomerDashboardController::class, 'reservations'])->name('reservations');
+        Route::get('/reservations/{reservation}', [CustomerDashboardController::class, 'showReservation'])->name('reservations.show');
         Route::patch('/reservations/{reservation}/cancel', [CustomerDashboardController::class, 'cancelReservation'])->name('reservations.cancel');
         Route::post('/reservations/{reservation}/payments', [CustomerDashboardController::class, 'submitPayment'])->name('reservations.payments.store');
 
     });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -25,6 +25,10 @@ class Reservation extends Model
         'status',
         'customer_notes',
         'admin_notes',
+        'event_date',
+        'agreement_version',
+        'agreement_accepted_ip',
+        'payment_reference_number',
         'measurements',
         'government_id_photo_path',
         'physical_id_photo_path',
@@ -44,6 +48,7 @@ class Reservation extends Model
         'amount_paid' => 'decimal:2',
         'balance' => 'decimal:2',
         'agreement_accepted_at' => 'datetime',
+        'event_date' => 'date',
     ];
 
     public function customer()

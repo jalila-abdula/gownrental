@@ -6298,3 +6298,1088 @@ body {
 @media (max-width: 600px) { .sb-step-progress li { justify-content: center; padding: 8px 4px; } .sb-step-progress li b { display: none; } .sb-step-controls { flex-wrap: wrap; } }
 @media (max-width: 600px) { .sb-customer-flow { padding: 16px; } .sb-heading-actions { align-items: flex-start; flex-direction: column; } }
 >>>>>>> 5ddded2d76ab771aae47dbec1547c716c50a2d05
+
+/* ================= Customer collection: full gown photo ================= */
+.sb-collection-page .sb-cards {
+    grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    gap: 20px;
+}
+.sb-collection-page .sb-product {
+    display: flex;
+    flex-direction: column;
+}
+.sb-collection-page .sb-product-image {
+    display: block;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #fdf8f4;
+    text-decoration: none;
+    transition: transform 0.25s ease;
+}
+.sb-collection-page .sb-product:hover .sb-product-image {
+    transform: scale(1.015);
+}
+/* The gradient must never sit on top of the photo, so it is only used when
+   the gown has no image at all. */
+.sb-collection-page .sb-product-image.is-empty {
+    background-image: linear-gradient(180deg, #f6e9e0 0%, #efe3da 55%, #f9f3ec 100%);
+}
+.sb-collection-page .sb-reserve-summary-photo.is-empty {
+    background-image: linear-gradient(180deg, #f6e9e0 0%, #efe3da 55%, #f9f3ec 100%);
+}
+.sb-collection-page .sb-product-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0;
+}
+.sb-product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin: 0 0 4px;
+}
+.sb-product-meta span {
+    font-size: 9.5px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #9a8b90;
+    background: #f8f1ee;
+    border-radius: 20px;
+    padding: 3px 8px;
+}
+.sb-collection-page .sb-product-info > div {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f0e4dd;
+    gap: 5px;
+    align-items: center;
+}
+.sb-collection-page .sb-product-info > div a {
+    margin-left: auto;
+    padding: 9px 13px;
+    font-size: 11px;
+}
+
+/* ================= Reservation layout ================= */
+.sb-reserve-page .sb-wrap {
+    max-width: 1120px;
+}
+.sb-reserve-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 26px;
+    align-items: start;
+    margin-top: 24px;
+}
+.sb-reserve-summary {
+    position: sticky;
+    top: 20px;
+    background: #fff;
+    border: 1px solid #ecdfd7;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(92, 26, 43, 0.07);
+}
+.sb-reserve-summary-photo {
+    display: block;
+    aspect-ratio: 3 / 4;
+    background-color: #fdf8f4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-bottom: 1px solid #f0e4dd;
+}
+.sb-reserve-summary-body {
+    padding: 18px 20px 22px;
+}
+.sb-reserve-summary-body h2 {
+    font: 500 20px "Playfair Display", serif;
+    margin: 6px 0 4px;
+    color: #4a3037;
+}
+.sb-reserve-summary-body > p {
+    margin: 0 0 14px;
+    font-size: 11px;
+    color: #a45e6e;
+    letter-spacing: 0.4px;
+}
+.sb-reserve-summary-rows div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px dashed #efe3db;
+    font-size: 12px;
+    color: #7a6a6f;
+}
+.sb-reserve-summary-rows b {
+    color: #4a3037;
+}
+.sb-reserve-summary-total {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #ecdfd7;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+.sb-reserve-summary-total span {
+    font-size: 12px;
+    color: #7a6a6f;
+}
+.sb-reserve-summary-total b {
+    font: 500 24px "Playfair Display", serif;
+    color: #5c1a2b;
+}
+.sb-reserve-summary-note {
+    margin-top: 14px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #8a7d82;
+    background: #fdf6f2;
+    border: 1px solid #f2e4db;
+    border-radius: 10px;
+    padding: 11px 13px;
+}
+.sb-reserve-main {
+    min-width: 0;
+}
+.sb-reserve-main .sb-reservation-form {
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+.sb-reserve-card {
+    background: #fff;
+    border: 1px solid #ecdfd7;
+    border-radius: 16px;
+    padding: 26px 28px 28px;
+    box-shadow: 0 12px 30px rgba(92, 26, 43, 0.06);
+}
+.sb-flow-step h2 {
+    font: 500 22px "Playfair Display", serif;
+    margin: 6px 0 4px;
+    color: #4a3037;
+}
+.sb-flow-step .sb-kicker {
+    color: #a45e6e;
+}
+.sb-flow-step .sb-form-intro {
+    margin: 0 0 18px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.sb-reservation-form .sb-form-row {
+    gap: 16px;
+}
+.sb-reservation-form label {
+    margin-bottom: 16px;
+}
+.sb-reservation-form input,
+.sb-reservation-form select,
+.sb-reservation-form textarea {
+    border-radius: 10px;
+    border: 1px solid #e6d8d0;
+    padding: 11px 13px;
+    font-size: 13px;
+    background: #fffdfb;
+}
+.sb-reservation-form input:focus,
+.sb-reservation-form select:focus,
+.sb-reservation-form textarea:focus {
+    border-color: #5c1a2b;
+    box-shadow: 0 0 0 3px rgba(92, 26, 43, 0.1);
+    outline: none;
+}
+/* The generic .sb-reservation-form input rule above hits checkboxes too. */
+.sb-reservation-form input[type="checkbox"],
+.sb-reservation-form input[type="radio"] {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.sb-selected-gown {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border: 1px solid #f0e4dd;
+    border-left: 3px solid #5c1a2b;
+    border-radius: 10px;
+    background: #fdf8f5;
+}
+.sb-selected-gown b {
+    font: 500 16px "Playfair Display", serif;
+    color: #4a3037;
+}
+.sb-selected-gown small {
+    font-size: 11px;
+    color: #a45e6e;
+    letter-spacing: 0.3px;
+}
+.sb-selected-gown strong {
+    margin-left: auto;
+    font-size: 14px;
+    color: #5c1a2b;
+}
+
+/* ================= Progress bar & 5-step wizard ================= */
+.sb-progress-head {
+    background: #fff;
+    border: 1px solid #ecdfd7;
+    border-radius: 14px;
+    padding: 16px 20px 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 10px 26px rgba(92, 26, 43, 0.06);
+    scroll-margin-top: 20px;
+}
+.sb-progress-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 11px;
+}
+.sb-progress-meta b {
+    font: 500 15px "Playfair Display", serif;
+    color: #4a3037;
+}
+.sb-progress-meta span {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: #a45e6e;
+}
+.sb-progress-track {
+    height: 8px;
+    border-radius: 20px;
+    background: #f1e6df;
+    overflow: hidden;
+}
+.sb-progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #7d1f33, #5c1a2b);
+    transition: width 0.35s ease;
+}
+.sb-step-dots {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+}
+.sb-step-dots li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #fbf6f3;
+    color: #a08f95;
+    min-width: 0;
+}
+.sb-step-dots li span {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ece0d8;
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+.sb-step-dots li b {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sb-step-dots li.is-active {
+    background: #fdf3f0;
+    border-color: #5c1a2b;
+    color: #4a3037;
+}
+.sb-step-dots li.is-active span {
+    background: #5c1a2b;
+}
+/* Completed steps read as a green check, not a dark filled circle. */
+.sb-step-dots li.is-complete {
+    background: #eef4f0;
+    color: #3f6b4a;
+}
+.sb-step-dots li.is-complete span {
+    background: #3f6b4a;
+    color: #fff;
+    font-size: 11px;
+}
+
+/* ================= Step 1: availability ================= */
+.sb-availability,
+.sb-size-recommendation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    margin: 4px 0 18px;
+    border: 1px solid #eee1d9;
+    border-left: 3px solid #d8c6bd;
+    border-radius: 10px;
+    background: #fffdfa;
+}
+.sb-availability-icon {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0e4dd;
+    color: #a45e6e;
+    font-size: 13px;
+    font-weight: 700;
+}
+.sb-availability b,
+.sb-size-recommendation b {
+    display: block;
+    font-size: 12.5px;
+    color: #4a3037;
+    margin-bottom: 3px;
+}
+.sb-availability p,
+.sb-size-recommendation p {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #8a7d82;
+}
+.sb-availability[data-state="busy"] {
+    border-left-color: #b8863f;
+    background: #fdf9f1;
+}
+.sb-availability[data-state="busy"] .sb-availability-icon {
+    background: #f3e3c8;
+    color: #8a6220;
+}
+.sb-availability[data-state="error"] {
+    border-left-color: #9c2b2b;
+    background: #fdf4f4;
+}
+.sb-availability[data-state="error"] .sb-availability-icon {
+    background: #f2d5d5;
+    color: #9c2b2b;
+}
+.sb-availability[data-state="ok"],
+.sb-size-recommendation[data-state="ok"] {
+    border-left-color: #3f6b4a;
+    background: #f3f8f4;
+}
+.sb-availability[data-state="ok"] .sb-availability-icon,
+.sb-size-recommendation[data-state="ok"] .sb-availability-icon {
+    background: #d7e8db;
+    color: #2f5c3b;
+}
+
+/* ================= Step 3: agreement ================= */
+.sb-agreement {
+    border: 1px solid #eee1d9;
+    border-radius: 12px;
+    padding: 16px 20px 18px;
+    margin: 4px 0 18px;
+    background: #fffdfa;
+}
+.sb-agreement summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    list-style: none;
+    padding: 2px 0 10px;
+}
+.sb-agreement summary::-webkit-details-marker {
+    display: none;
+}
+.sb-agreement summary b {
+    font: 500 16px "Playfair Display", serif;
+    color: #4a3037;
+}
+.sb-agreement summary span {
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #a45e6e;
+}
+.sb-agreement ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 12px;
+    line-height: 1.75;
+    color: #6f6266;
+    border-top: 1px dashed #efe3db;
+    padding-top: 14px;
+}
+.sb-agreement ol b {
+    color: #4a3037;
+}
+.sb-agreement-checks {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.sb-agreement-check {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 !important;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fdf3f0;
+    border: 1px solid #f0dcd6;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #4a3037;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.sb-agreement-check:hover {
+    border-color: #d9bcae;
+}
+.sb-agreement-check:has(input:checked) {
+    border-color: #3f6b4a;
+    background: #f3f8f4;
+}
+.sb-agreement-check input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin: 1px 0 0;
+    border: 1.5px solid #cdbab0;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+.sb-agreement-check input[type="checkbox"]:hover {
+    border-color: #5c1a2b;
+}
+.sb-agreement-check input[type="checkbox"]:checked {
+    background: #3f6b4a;
+    border-color: #3f6b4a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.sb-agreement-check input[type="checkbox"]:focus-visible {
+    outline: 2px solid #5c1a2b;
+    outline-offset: 2px;
+}
+.sb-check-error {
+    display: block;
+    color: #9c2b2b;
+    font-size: 11px;
+    margin: 4px 0 0 2px;
+}
+
+/* ================= Step 4: payment ================= */
+.sb-payment-breakdown {
+    border: 1px solid #eee1d9;
+    border-radius: 12px;
+    padding: 16px 20px 18px;
+    margin: 0 0 18px;
+    background: #fffdfa;
+}
+.sb-payment-breakdown h3 {
+    font: 500 16px "Playfair Display", serif;
+    margin: 0 0 8px;
+    color: #4a3037;
+}
+.sb-payment-breakdown > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 9px 0;
+    border-top: 1px dashed #efe3db;
+    font-size: 12.5px;
+    color: #6f6266;
+}
+.sb-payment-breakdown em {
+    font-style: normal;
+    font-size: 10.5px;
+    color: #a08f95;
+}
+.sb-payment-breakdown > div:last-child {
+    margin-top: 4px;
+    border-top: 1px solid #e7d8d0;
+    font-weight: 700;
+    color: #4a3037;
+}
+.sb-payment-breakdown b {
+    color: #5c1a2b;
+}
+.sb-method-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 4px 0 18px;
+}
+.sb-method-option {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0 !important;
+    padding: 13px 14px;
+    border: 1px solid #e8dcd4;
+    border-radius: 11px;
+    background: #fffdfa;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.sb-method-option:hover {
+    border-color: #d9bcae;
+}
+.sb-method-option span {
+    min-width: 0;
+}
+.sb-method-option b {
+    display: block;
+    font-size: 12.5px;
+    color: #4a3037;
+}
+.sb-method-option small {
+    display: block;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #9a8b90;
+    margin-top: 2px;
+}
+.sb-method-option.is-selected {
+    border-color: #5c1a2b;
+    background: #fdf3f0;
+    box-shadow: 0 0 0 3px rgba(92, 26, 43, 0.08);
+}
+.sb-method-option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    margin: 2px 0 0;
+    border: 1.5px solid #cdbab0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.sb-method-option input[type="radio"]:checked {
+    border-color: #5c1a2b;
+    box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 9px #5c1a2b;
+}
+
+/* ================= Step 5: confirmation ================= */
+.sb-confirm-list {
+    border: 1px solid #eee1d9;
+    border-radius: 12px;
+    background: #fffdfa;
+    padding: 6px 18px 10px;
+    margin-bottom: 18px;
+}
+.sb-confirm-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px dashed #efe3db;
+    font-size: 12.5px;
+}
+.sb-confirm-list > div:first-child {
+    border-top: 0;
+}
+.sb-confirm-list span {
+    color: #8a7d82;
+}
+.sb-confirm-list b {
+    color: #4a3037;
+    text-align: right;
+}
+.sb-confirm-status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: #fdf6f2;
+    border: 1px solid #f2e4db;
+    font-size: 12px;
+    color: #6f6266;
+}
+.sb-confirm-status b {
+    color: #5c1a2b;
+}
+.sb-status-dot {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: #c9b8ae;
+}
+.sb-status-dot.is-pending {
+    background: #d8a13c;
+    box-shadow: 0 0 0 3px rgba(216, 161, 60, 0.2);
+}
+.sb-btn-confirm {
+    background: #5c1a2b !important;
+    color: #fff !important;
+}
+
+/* ================= Step controls ================= */
+.sb-step-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid #f0e4dd;
+}
+.sb-step-controls > span {
+    font-size: 11.5px;
+    color: #a08f95;
+    letter-spacing: 0.4px;
+}
+.sb-step-controls .sb-btn,
+.sb-step-controls .sb-outline-btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+}
+.sb-step-controls [data-step-back] {
+    margin-right: auto;
+}
+.sb-step-controls [data-step-next],
+.sb-step-controls [data-step-submit] {
+    margin-left: auto;
+}
+.sb-step-controls .sb-btn[disabled],
+.sb-step-controls .sb-outline-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ================= File picker with image preview ================= */
+.sb-file-field {
+    position: relative;
+    display: block;
+}
+.sb-file-field > input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+    opacity: 0;
+}
+.sb-file-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 24px 18px;
+    border: 1.5px dashed #ddcdc2;
+    border-radius: 12px;
+    background: #fffdfa;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.sb-file-drop svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: #b08a76;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.sb-file-drop b {
+    font-size: 12.5px;
+    color: #4a3037;
+}
+.sb-file-drop small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #a08f95;
+}
+.sb-file-field:hover .sb-file-drop,
+.sb-file-field:focus-within .sb-file-drop {
+    border-color: #5c1a2b;
+    background: #fdf6f3;
+}
+.sb-file-field[data-state="ready"] .sb-file-drop {
+    border-color: #3f6b4a;
+    background: #f4f9f5;
+}
+.sb-file-field[data-state="error"] .sb-file-drop {
+    border-color: #9c2b2b;
+    background: #fdf5f5;
+}
+/* The field lives inside a <label>, so the zone itself opens the picker. */
+.sb-file-drop b,
+.sb-file-drop small,
+.sb-file-drop svg {
+    pointer-events: none;
+}
+.sb-file-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid #d9e5dc;
+    border-radius: 12px;
+    background: #f6faf7;
+}
+.sb-file-preview img {
+    width: 96px;
+    height: 96px;
+    flex: 0 0 96px;
+    object-fit: cover;
+    border-radius: 9px;
+    border: 1px solid #e2d8cf;
+    background: #fff;
+}
+.sb-file-meta {
+    min-width: 0;
+    flex: 1;
+}
+.sb-file-meta b {
+    display: block;
+    font-size: 12.5px;
+    color: #4a3037;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sb-file-meta small {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    font-weight: 400;
+    color: #7a8f81;
+}
+.sb-file-clear {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ddcec6;
+    border-radius: 50%;
+    background: #fff;
+    color: #8a7d82;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.sb-file-clear:hover {
+    border-color: #9c2b2b;
+    background: #fdf5f5;
+    color: #9c2b2b;
+}
+
+/* ================= Reservation confirmation page ================= */
+.sb-confirm-hero {
+    text-align: center;
+    padding: 6px 0 26px;
+    border-bottom: 1px solid #f0e4dd;
+    margin-bottom: 26px;
+}
+.sb-confirm-tick {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #e6f0e8;
+    color: #2f5c3b;
+    font-size: 24px;
+}
+.sb-confirm-hero h2 {
+    font: 500 26px "Playfair Display", serif;
+    margin: 0 0 8px;
+    color: #4a3037;
+}
+.sb-confirm-hero p {
+    margin: 0 0 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: #8a7d82;
+}
+.sb-section-title {
+    font: 500 15px "Playfair Display", serif;
+    color: #4a3037;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0e4dd;
+}
+.sb-timeline {
+    list-style: none;
+    margin: 0 0 26px;
+    padding: 0;
+}
+.sb-timeline li {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-areas: "dot label" ". meta";
+    gap: 2px 12px;
+    padding: 0 0 16px;
+    position: relative;
+}
+.sb-timeline li::before {
+    content: "";
+    position: absolute;
+    left: 12.5px;
+    top: 22px;
+    bottom: 0;
+    width: 1px;
+    background: #eee1d9;
+}
+.sb-timeline li:last-child::before {
+    display: none;
+}
+.sb-timeline-dot {
+    grid-area: dot;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0e4dd;
+    color: #fff;
+    font-size: 12px;
+    position: relative;
+    z-index: 1;
+}
+.sb-timeline li.is-done .sb-timeline-dot {
+    background: #3f6b4a;
+}
+.sb-timeline li.is-current .sb-timeline-dot {
+    background: #5c1a2b;
+    box-shadow: 0 0 0 4px rgba(92, 26, 43, 0.14);
+}
+.sb-timeline li b {
+    grid-area: label;
+    font-size: 12.5px;
+    color: #9a8b90;
+    align-self: center;
+}
+.sb-timeline li.is-done b,
+.sb-timeline li.is-current b {
+    color: #4a3037;
+}
+.sb-timeline li small {
+    grid-area: meta;
+    font-size: 11px;
+    color: #a08f95;
+}
+.sb-deposit-panel {
+    border: 1px solid #eee1d9;
+    border-radius: 12px;
+    background: #fffdfa;
+    padding: 8px 18px 12px;
+    margin-bottom: 26px;
+}
+.sb-deposit-panel > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 0;
+    border-top: 1px dashed #efe3db;
+    font-size: 12.5px;
+    color: #8a7d82;
+}
+.sb-deposit-panel > div:first-child {
+    border-top: 0;
+}
+.sb-deposit-panel b {
+    color: #4a3037;
+}
+.sb-deposit-status {
+    font-size: 11.5px;
+    color: #a45e6e;
+    letter-spacing: 0.3px;
+}
+.sb-pay-verified {
+    color: #2f5c3b;
+    font-style: normal;
+    font-weight: 600;
+}
+.sb-pay-pending {
+    color: #8a6220;
+    font-style: normal;
+    font-weight: 600;
+}
+.sb-pay-rejected,
+.sb-pay-refunded {
+    color: #9a8b90;
+    font-style: normal;
+    font-weight: 600;
+}
+
+/* ================= My Reservations ================= */
+.sb-customer-progress {
+    margin: 4px 0 18px;
+}
+.sb-customer-progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.sb-customer-progress-head b {
+    font-size: 12px;
+    color: #4a3037;
+    letter-spacing: 0.3px;
+}
+.sb-customer-progress-head span {
+    font-size: 11px;
+    color: #a08f95;
+}
+.sb-lifecycle-chips {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.sb-lifecycle-chips li {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #f6f1ee;
+    font-size: 10.5px;
+    color: #a08f95;
+    letter-spacing: 0.2px;
+}
+.sb-lifecycle-chips li span {
+    font-size: 9px;
+}
+.sb-lifecycle-chips li.is-done {
+    background: #eaf2ec;
+    color: #2f5c3b;
+}
+.sb-lifecycle-chips li.is-current {
+    background: #fdf3f0;
+    color: #5c1a2b;
+    font-weight: 600;
+}
+.sb-customer-booking-thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: 4px 0 16px;
+    border-radius: 12px;
+    background-color: #fdf8f4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.sb-customer-booking-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+@media (max-width: 980px) {
+    .sb-method-options {
+        grid-template-columns: 1fr;
+    }
+    .sb-reserve-layout {
+        grid-template-columns: 1fr;
+    }
+    .sb-reserve-summary {
+        position: static;
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+    }
+    .sb-reserve-summary-photo {
+        height: 100%;
+        border-bottom: 0;
+        border-right: 1px solid #f0e4dd;
+    }
+}
+@media (max-width: 700px) {
+    .sb-reserve-summary {
+        grid-template-columns: 1fr;
+    }
+    .sb-reserve-summary-photo {
+        max-height: 260px;
+        border-right: 0;
+        border-bottom: 1px solid #f0e4dd;
+    }
+    .sb-reserve-card {
+        padding: 20px 18px 22px;
+    }
+    .sb-step-dots li {
+        justify-content: center;
+        padding: 9px 4px;
+    }
+    .sb-step-dots li b {
+        display: none;
+    }
+    .sb-confirm-list > div,
+    .sb-deposit-panel > div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .sb-confirm-list b {
+        text-align: left;
+    }
+    .sb-file-preview {
+        flex-wrap: wrap;
+    }
+    .sb-file-preview img {
+        width: 100%;
+        height: 160px;
+        flex-basis: 100%;
+    }
+}
